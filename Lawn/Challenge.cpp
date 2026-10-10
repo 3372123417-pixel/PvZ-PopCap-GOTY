@@ -4075,8 +4075,11 @@ int Challenge::PuzzleIsAwardStage()
 	if (mApp->IsAdventureMode())
 		return false;
 
-	int aGoal = mApp->mGameMode == GAMEMODE_PUZZLE_I_ZOMBIE_ENDLESS ? 2 : mApp->mGameMode == GAMEMODE_SCARY_POTTER_ENDLESS ? 9 : 1;
-	return mSurvivalStage > 0 && mSurvivalStage % aGoal == 0;
+	if (mApp->mGameMode == GAMEMODE_PUZZLE_I_ZOMBIE_ENDLESS)
+		return mSurvivalStage % 3 == 2;
+	if (mApp->mGameMode == GAMEMODE_SCARY_POTTER_ENDLESS)
+		return mSurvivalStage % 10 == 9;
+	return false;
 }
 
 void Challenge::PuzzlePhaseComplete(int theGridX, int theGridY)
