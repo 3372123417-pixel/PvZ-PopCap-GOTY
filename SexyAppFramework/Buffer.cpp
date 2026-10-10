@@ -213,6 +213,19 @@ std::wstring Buffer::UTF8ToWideString() const
 	return aString;
 }
 
+std::string Buffer::ToUTF8String() const
+{
+	const char* aData = (const char*)GetDataPtr();
+	int aLen = GetDataLen();
+	return Sexy::AutoDetectEncodingToUTF8(aData, aLen);
+}
+
+bool Buffer::ToUTF8String(std::string* theString) const
+{
+	*theString = ToUTF8String();
+	return true;
+}
+
 void Buffer::FromWebString(const std::string& theString)
 {
 	Clear();

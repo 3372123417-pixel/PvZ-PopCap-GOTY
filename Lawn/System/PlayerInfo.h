@@ -92,6 +92,8 @@ public:
     void                DeleteUserFiles();
     void                LoadDetails();
     void                SaveDetails();
+    void                LoadZombatar();
+    void                SaveZombatar();
     inline int          GetLevel() const { return mLevel; }
     inline void         SetLevel(int theLevel) { mLevel = theLevel; }
     /*inline*/ void     ResetChallengeRecord(GameMode theGameMode);

@@ -155,6 +155,11 @@ std::string			XMLEncodeString(const std::string& theString);
 std::wstring		XMLDecodeString(const std::wstring& theString);
 std::wstring		XMLEncodeString(const std::wstring& theString);
 
+// UTF-8 / Encoding detection and conversion helpers
+bool				IsValidUTF8(const char* theData, int theLen);
+std::string			Win1252ToUTF8(const char* theData, int theLen);
+std::string			AutoDetectEncodingToUTF8(const char* theData, int theLen);
+
 bool				Deltree(const std::string& thePath);
 bool				FileExists(const std::string& theFileName);
 void				MkDir(const std::string& theDir);
@@ -224,6 +229,115 @@ inline void			inlineTrim(std::string &theData, const std::string& theChars = " \
 }
 
 struct StringLessNoCase { bool operator()(const std::string &s1, const std::string &s2) const { return _stricmp(s1.c_str(),s2.c_str())<0; } };
+
+inline bool UTF8DecodeNext(const std::string& theString, size_t& theOffset, unsigned int& theOutChar)
+{
+	if (theOffset >= theString.size())
+		return false;
+
+	unsigned char aFirst = (unsigned char)theString[theOffset];
+	int aSeqLen;
+	unsigned int aCodePoint;
+
+	if (aFirst < 0x80)
+	{
+		aSeqLen = 1;
+		aCodePoint = aFirst;
+	}
+	else if ((aFirst & 0xE0) == 0xC0)
+	{
+		if (theOffset + 1 >= theString.size()) return false;
+		unsigned char aSecond = (unsigned char)theString[theOffset + 1];
+		if ((aSecond & 0xC0) != 0x80) return false;
+		aCodePoint = ((aFirst & 0x1F) << 6) | (aSecond & 0x3F);
+		if (aCodePoint < 0x80) return false;
+		aSeqLen = 2;
+	}
+	else if ((aFirst & 0xF0) == 0xE0)
+	{
+		if (theOffset + 2 >= theString.size()) return false;
+		unsigned char aSecond = (unsigned char)theString[theOffset + 1];
+		unsigned char aThird  = (unsigned char)theString[theOffset + 2];
+		if ((aSecond & 0xC0) != 0x80 || (aThird & 0xC0) != 0x80) return false;
+		aCodePoint = ((aFirst & 0x0F) << 12) | ((aSecond & 0x3F) << 6) | (aThird & 0x3F);
+		if (aCodePoint < 0x800) return false;
+		aSeqLen = 3;
+	}
+	else if ((aFirst & 0xF8) == 0xF0)
+	{
+		if (theOffset + 3 >= theString.size()) return false;
+		unsigned char aSecond = (unsigned char)theString[theOffset + 1];
+		unsigned char aThird  = (unsigned char)theString[theOffset + 2];
+		unsigned char aFourth = (unsigned char)theString[theOffset + 3];
+		if ((aSecond & 0xC0) != 0x80 || (aThird & 0xC0) != 0x80 || (aFourth & 0xC0) != 0x80) return false;
+		aCodePoint = ((aFirst & 0x07) << 18) | ((aSecond & 0x3F) << 12) | ((aThird & 0x3F) << 6) | (aFourth & 0x3F);
+		if (aCodePoint < 0x10000 || aCodePoint > 0x10FFFF) return false;
+		aSeqLen = 4;
+	}
+	else
+	{
+		return false;
+	}
+
+	theOutChar = aCodePoint;
+	theOffset += aSeqLen;
+	return true;
+}
+
+// Opening punctuation that must not appear at end of a line
+inline bool IsOpeningPunctuation(wchar_t theChar)
+{
+	switch (theChar)
+	{
+	case L'\u3008': case L'\u300A': case L'\u300C': case L'\u300E':
+	case L'\u3010': case L'\u3014': case L'\u3016': case L'\u3018':
+	case L'\u301A':
+	case L'\uFF08': case L'\uFF3B': case L'\uFF5B':
+	case L'\u2018': case L'\u201A': case L'\u201B': case L'\u201C':
+		return true;
+	default:
+		return false;
+	}
+}
+
+// Closing punctuation that must not appear at start of a line
+inline bool IsClosingPunctuation(wchar_t theChar)
+{
+	switch (theChar)
+	{
+	case L'\u3009': case L'\u300B': case L'\u300D': case L'\u300F':
+	case L'\u3011': case L'\u3015': case L'\u3017': case L'\u3019':
+	case L'\u301B':
+	case L'\uFF09': case L'\uFF3D': case L'\uFF5D':
+	case L'\u2019': case L'\u201D':
+	case L'\u3001': case L'\u3002':
+	case L'\uFF0C': case L'\uFF0E':
+	case L'\uFF01': case L'\uFF1F':
+	case L'\uFF1A': case L'\uFF1B':
+		return true;
+	default:
+		return false;
+	}
+}
+
+// Characters that allow auto line-break (CJK, etc.)
+inline bool IsAutoBreakChar(wchar_t theChar)
+{
+	if (theChar < 0x80)
+		return false;
+	return (theChar >= 0x2018 && theChar <= 0x201D) ||
+		(theChar >= 0x2600 && theChar <= 0x27BF) ||
+		(theChar >= 0x3000 && theChar <= 0x303F) ||
+		(theChar >= 0x3040 && theChar <= 0x309F) ||
+		(theChar >= 0x30A0 && theChar <= 0x30FF) ||
+		(theChar >= 0x3400 && theChar <= 0x4DBF) ||
+		(theChar >= 0x4E00 && theChar <= 0x9FFF) ||
+		(theChar >= 0xAC00 && theChar <= 0xD7AF) ||
+		(theChar >= 0xF900 && theChar <= 0xFAFF) ||
+		(theChar >= 0xFE30 && theChar <= 0xFE4F) ||
+		(theChar >= 0xFF01 && theChar <= 0xFF60) ||
+		(theChar >= 0x20000 && theChar <= 0x2FA1F);
+}
 
 }
 

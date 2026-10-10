@@ -651,7 +651,7 @@ void SeedChooserScreen::OnStartButton()
 			return;
 		}
 	}
-	if (mBoard->StageHasRoof() && !PickedPlantType(SEED_FLOWERPOT) && mApp->HasSeedType(SEED_FLOWERPOT))
+	if (mBoard->StageHasRoof() && !PickedPlantType(SEED_FLOWERPOT) && mApp->HasSeedType(SEED_FLOWERPOT) && !mBoard->mCutScene->IsSurvivalRepick())
 	{
 		if (!DisplayRepickWarningDialog(_S("[SEED_CHOOSER_ROOF_WARNING]")))
 		{

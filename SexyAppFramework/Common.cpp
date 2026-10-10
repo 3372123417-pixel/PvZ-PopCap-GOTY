@@ -183,35 +183,111 @@ std::wstring Sexy::StringToLower(const std::wstring& theString)
 	return aString;
 }
 
+// Helper: Decode one UTF-8 character and return codepoint + bytes consumed
+static int DecodeUTF8Char(const char* theBuffer, int theLen, wchar_t* theChar)
+{
+	if (theLen <= 0) return 0;
+
+	const unsigned char* p = (const unsigned char*)theBuffer;
+	unsigned char aFirst = p[0];
+
+	if (aFirst < 0x80)
+	{
+		*theChar = (wchar_t)aFirst;
+		return 1;
+	}
+
+	int aSeqLen;
+	unsigned int aCodepoint;
+	if ((aFirst & 0xE0) == 0xC0 && aFirst >= 0xC2) { aSeqLen = 2; aCodepoint = aFirst & 0x1F; }
+	else if ((aFirst & 0xF0) == 0xE0) { aSeqLen = 3; aCodepoint = aFirst & 0x0F; }
+	else if ((aFirst & 0xF8) == 0xF0 && aFirst <= 0xF4) { aSeqLen = 4; aCodepoint = aFirst & 0x07; }
+	else return 0; // Invalid UTF-8
+
+	if (theLen < aSeqLen) return 0;
+
+	for (int i = 1; i < aSeqLen; ++i)
+	{
+		if ((p[i] & 0xC0) != 0x80) return 0;
+		aCodepoint = (aCodepoint << 6) | (p[i] & 0x3F);
+	}
+
+	// Reject overlong and surrogate
+	if (aSeqLen == 2 && aCodepoint < 0x80) return 0;
+	if (aSeqLen == 3 && aCodepoint < 0x800) return 0;
+	if (aSeqLen == 4 && aCodepoint < 0x10000) return 0;
+	if (aCodepoint >= 0xD800 && aCodepoint <= 0xDFFF) return 0;
+	if (aCodepoint > 0x10FFFF) return 0;
+
+	*theChar = (wchar_t)aCodepoint;
+	return aSeqLen;
+}
+
+// Helper: Encode one wchar_t to UTF-8 and append to string
+static void AppendUTF8FromWChar(std::string& theString, wchar_t theChar)
+{
+	unsigned int c = (unsigned int)theChar;
+	if (c < 0x80)
+	{
+		theString += (char)c;
+	}
+	else if (c < 0x800)
+	{
+		theString += (char)(0xC0 | (c >> 6));
+		theString += (char)(0x80 | (c & 0x3F));
+	}
+	else if (c < 0x10000)
+	{
+		theString += (char)(0xE0 | (c >> 12));
+		theString += (char)(0x80 | ((c >> 6) & 0x3F));
+		theString += (char)(0x80 | (c & 0x3F));
+	}
+	else if (c < 0x110000)
+	{
+		theString += (char)(0xF0 | (c >> 18));
+		theString += (char)(0x80 | ((c >> 12) & 0x3F));
+		theString += (char)(0x80 | ((c >> 6) & 0x3F));
+		theString += (char)(0x80 | (c & 0x3F));
+	}
+}
+
 std::wstring Sexy::StringToWString(const std::string &theString)
 {
 	std::wstring aString;
 	aString.reserve(theString.length());
-	for(size_t i = 0; i < theString.length(); ++i)
-		aString += (unsigned char)theString[i];
+
+	const char* aBuffer = theString.c_str();
+	int aLen = (int)theString.length();
+
+	while (aLen > 0)
+	{
+		wchar_t aChar;
+		int aConsumed = DecodeUTF8Char(aBuffer, aLen, &aChar);
+		if (aConsumed == 0)
+		{
+			// Invalid UTF-8 byte, treat as Windows-1252 / Latin-1
+			aChar = (wchar_t)(unsigned char)*aBuffer;
+			aConsumed = 1;
+		}
+		aString += aChar;
+		aBuffer += aConsumed;
+		aLen -= aConsumed;
+	}
+
 	return aString;
 }
 
 std::string Sexy::WStringToString(const std::wstring &theString)
 {
-	size_t aRequiredLength = wcstombs( NULL, theString.c_str(), 0 );
-	if (aRequiredLength < 16384)
-	{
-		char aBuffer[16384];
-		wcstombs( aBuffer, theString.c_str(), 16384 );
-		return std::string(aBuffer);
-	}
-	else
-	{
-		DBG_ASSERTE(aRequiredLength != (size_t)-1);
-		if (aRequiredLength == (size_t)-1) return "";
+	std::string aString;
+	aString.reserve(theString.length() * 3);
 
-		char* aBuffer = new char[aRequiredLength+1];
-		wcstombs( aBuffer, theString.c_str(), aRequiredLength+1 );
-		std::string aStr = aBuffer;
-		delete[] aBuffer;
-		return aStr;
+	for (size_t i = 0; i < theString.length(); ++i)
+	{
+		AppendUTF8FromWChar(aString, theString[i]);
 	}
+
+	return aString;
 }
 
 SexyString Sexy::StringToSexyString(const std::string& theString)
@@ -1272,6 +1348,139 @@ std::wstring Sexy::Lower(const std::wstring& _data)
 	std::wstring s = _data;
 	std::transform(s.begin(), s.end(), s.begin(), towlower);
 	return s;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// UTF-8 / Encoding detection and conversion helpers
+///////////////////////////////////////////////////////////////////////////////
+
+// Windows-1252 bytes 0x80-0x9F to Unicode codepoints
+static const wchar_t WIN1252_TO_UNICODE[32] = {
+	0x20AC, 0x0081, 0x201A, 0x0192, 0x201E, 0x2026, 0x2020, 0x2021,
+	0x02C6, 0x2030, 0x0160, 0x2039, 0x0152, 0x008D, 0x017D, 0x008F,
+	0x0090, 0x2018, 0x2019, 0x201C, 0x201D, 0x2022, 0x2013, 0x2014,
+	0x02DC, 0x2122, 0x0161, 0x203A, 0x0153, 0x009D, 0x017E, 0x0178
+};
+
+static int EncodeUTF8Char(wchar_t code, char out[4])
+{
+	if (code <= 0x7F)
+	{
+		out[0] = (char)code;
+		return 1;
+	}
+	if (code <= 0x7FF)
+	{
+		out[0] = (char)(0xC0 | (code >> 6));
+		out[1] = (char)(0x80 | (code & 0x3F));
+		return 2;
+	}
+	out[0] = (char)(0xE0 | (code >> 12));
+	out[1] = (char)(0x80 | ((code >> 6) & 0x3F));
+	out[2] = (char)(0x80 | (code & 0x3F));
+	return 3;
+}
+
+bool Sexy::IsValidUTF8(const char* theData, int theLen)
+{
+	const unsigned char* p = (const unsigned char*)theData;
+	const unsigned char* anEnd = p + theLen;
+	while (p < anEnd)
+	{
+		unsigned char aFirst = *p;
+		int aSeqLen;
+		if (aFirst < 0x80) { ++p; continue; }
+		else if ((aFirst & 0xE0) == 0xC0 && aFirst >= 0xC2) aSeqLen = 2;
+		else if ((aFirst & 0xF0) == 0xE0) aSeqLen = 3;
+		else if ((aFirst & 0xF8) == 0xF0 && aFirst <= 0xF4) aSeqLen = 4;
+		else return false;
+
+		if (p + aSeqLen > anEnd) return false;
+		for (int i = 1; i < aSeqLen; ++i)
+			if ((p[i] & 0xC0) != 0x80) return false;
+
+		// Reject overlong encodings and surrogates
+		if (aSeqLen == 3 && aFirst == 0xE0 && p[1] < 0xA0) return false;
+		if (aSeqLen == 3 && aFirst == 0xED && p[1] > 0x9F) return false;
+		if (aSeqLen == 4 && aFirst == 0xF0 && p[1] < 0x90) return false;
+		if (aSeqLen == 4 && aFirst == 0xF4 && p[1] > 0x8F) return false;
+		p += aSeqLen;
+	}
+	return true;
+}
+
+std::string Sexy::Win1252ToUTF8(const char* theData, int theLen)
+{
+	std::string aResult;
+	aResult.reserve(theLen * 2);
+	for (int i = 0; i < theLen; ++i)
+	{
+		unsigned char aByte = (unsigned char)theData[i];
+		wchar_t aCodepoint;
+		if (aByte < 0x80)
+			aCodepoint = aByte;
+		else if (aByte <= 0x9F)
+			aCodepoint = WIN1252_TO_UNICODE[aByte - 0x80];
+		else
+			aCodepoint = aByte; // 0xA0-0xFF map directly to U+00A0-U+00FF
+
+		char utf8[4];
+		int len = EncodeUTF8Char(aCodepoint, utf8);
+		aResult.append(utf8, len);
+	}
+	return aResult;
+}
+
+std::string Sexy::AutoDetectEncodingToUTF8(const char* theData, int theLen)
+{
+	if (theLen >= 3 && memcmp(theData, "\xEF\xBB\xBF", 3) == 0)
+	{
+		// UTF-8 BOM: strip it
+		return std::string(theData + 3, theLen - 3);
+	}
+
+	if (theLen >= 2 && memcmp(theData, "\xFF\xFE", 2) == 0)
+	{
+		// UTF-16 LE BOM
+		if ((theLen - 2) % 2 != 0) return std::string(theData, theLen);
+		std::string aResult;
+		const unsigned char* p = (const unsigned char*)(theData + 2);
+		int aCount = (theLen - 2) / 2;
+		for (int i = 0; i < aCount; ++i)
+		{
+			wchar_t aChar = (wchar_t)(p[i * 2] | (p[i * 2 + 1] << 8));
+			char utf8[4];
+			int len = EncodeUTF8Char(aChar, utf8);
+			aResult.append(utf8, len);
+		}
+		return aResult;
+	}
+
+	if (theLen >= 2 && memcmp(theData, "\xFE\xFF", 2) == 0)
+	{
+		// UTF-16 BE BOM
+		if ((theLen - 2) % 2 != 0) return std::string(theData, theLen);
+		std::string aResult;
+		const unsigned char* p = (const unsigned char*)(theData + 2);
+		int aCount = (theLen - 2) / 2;
+		for (int i = 0; i < aCount; ++i)
+		{
+			wchar_t aChar = (wchar_t)((p[i * 2] << 8) | p[i * 2 + 1]);
+			char utf8[4];
+			int len = EncodeUTF8Char(aChar, utf8);
+			aResult.append(utf8, len);
+		}
+		return aResult;
+	}
+
+	if (IsValidUTF8(theData, theLen))
+	{
+		// Already valid UTF-8 (no BOM)
+		return std::string(theData, theLen);
+	}
+
+	// Treat as Windows-1252 / local ANSI encoding and convert to UTF-8
+	return Win1252ToUTF8(theData, theLen);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

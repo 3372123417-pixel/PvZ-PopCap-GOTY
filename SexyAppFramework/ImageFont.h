@@ -26,6 +26,9 @@ public:
 
 class FontData;
 
+typedef std::map<unsigned int, CharData> ExtendedCharDataMap;
+typedef std::map<unsigned int, Rect> ExtendedCharRectMap;
+
 class FontLayer
 {
 public:	
@@ -33,6 +36,7 @@ public:
 	StringVector			mRequiredTags;
 	StringVector			mExcludedTags;	
 	CharData				mCharData[256];	
+	ExtendedCharDataMap		mExtendedCharDataMap;
 	Color					mColorMult;
 	Color					mColorAdd;
 	SharedImageRef			mImage;	
@@ -52,7 +56,7 @@ public:
 public:
 	FontLayer(FontData* theFontData);
 	FontLayer(const FontLayer& theFontLayer);
-	CharData* GetCharData(SexyChar value);
+	CharData* GetCharData(unsigned int value);
 };
 
 typedef std::list<FontLayer> FontLayerList;
@@ -67,7 +71,8 @@ public:
 	SexyAppBase*			mApp;		
 
 	int						mDefaultPointSize;
-	uchar					mCharMap[256];	
+	uchar					mCharMap[256];
+	std::map<unsigned int, unsigned int>	mExtendedCharMap;
 	FontLayerList			mFontLayerList;
 	FontLayerMap			mFontLayerMap;
 
@@ -100,6 +105,7 @@ public:
 	Image*					mScaledImage;
 	bool					mOwnsImage;
 	Rect					mScaledCharImageRects[256];
+	ExtendedCharRectMap		mExtendedScaledCharImageRects;
 
 public:
 	ActiveFontLayer();
@@ -137,7 +143,7 @@ public:
 public:
 	virtual void			GenerateActiveFontLayers();
 	virtual void			DrawStringEx(Graphics* g, int theX, int theY, const SexyString& theString, const Color& theColor, const Rect* theClipRect, RectList* theDrawnAreas, int* theWidth);
-	SexyChar GetMappedChar(char value);
+	unsigned int GetMappedChar(unsigned int value);
 
 public:
 	ImageFont(SexyAppBase* theSexyApp, const std::string& theFontDescFileName);
@@ -151,7 +157,9 @@ public:
 	
 	virtual int				CharWidth(char theChar);
 	virtual int				CharWidthKern(char theChar, char thePrevChar);
+	virtual int				CharWidthUInt(unsigned int theChar);
 	virtual int				StringWidth(const SexyString& theString);
+	int					CharWidthKernUInt(unsigned int theChar, unsigned int thePrevChar);
 	virtual void			DrawString(Graphics* g, int theX, int theY, const SexyString& theString, const Color& theColor, const Rect& theClipRect);
 
 	virtual Font*			Duplicate();

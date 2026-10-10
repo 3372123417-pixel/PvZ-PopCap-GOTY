@@ -33,13 +33,13 @@ LawnDialog::LawnDialog(LawnApp* theApp, int theId, bool isModal, const SexyStrin
 
     if (theButtonMode == 1)
     {
-        mLawnYesButton = MakeButton(1000, this, _S("Yes"/*[BUTTON_YES]*/));
-        mLawnNoButton = MakeButton(1001, this, _S("No"/*[BUTTON_NO]*/));
+        mLawnYesButton = MakeButton(1000, this, mApp->GetString("BUTTON_YES", _S("Yes")));
+        mLawnNoButton = MakeButton(1001, this, mApp->GetString("BUTTON_NO", _S("No")));
     }
     else if (theButtonMode == 2)
     {
-        mLawnYesButton = MakeButton(1000, this, _S("Ok"/*[BUTTON_OK]*/));
-        mLawnNoButton = MakeButton(1001, this, _S("Cancel"/*[BUTTON_CANCEL]*/));
+        mLawnYesButton = MakeButton(1000, this, mApp->GetString("BUTTON_OK", _S("Ok")));
+        mLawnNoButton = MakeButton(1001, this, mApp->GetString("BUTTON_CANCEL", _S("Cancel")));
     }
     else if (theButtonMode == 3)
     {

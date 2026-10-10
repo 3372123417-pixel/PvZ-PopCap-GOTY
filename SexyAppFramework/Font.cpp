@@ -69,6 +69,20 @@ int Font::CharWidthKern(SexyChar theChar, SexyChar thePrevChar)
 	return CharWidth(theChar);
 }
 
+int Font::CharWidthUInt(unsigned int theChar)
+{
+	if (theChar < 0x100)
+		return CharWidth((SexyChar)theChar);
+	return 0;
+}
+
+int Font::CharWidthKernUInt(unsigned int theChar, unsigned int thePrevChar)
+{
+	if (theChar < 0x100)
+		return CharWidthKern((SexyChar)theChar, (SexyChar)thePrevChar);
+	return 0;
+}
+
 void Font::DrawString(Graphics* g, int theX, int theY, const SexyString& theString, const Color& theColor, const Rect& theClipRect)
 {
 }

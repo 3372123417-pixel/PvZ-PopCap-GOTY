@@ -297,6 +297,7 @@ enum Dialogs
     DIALOG_PURCHASE_PACKET_SLOT,                // 50：升级卡槽的格子数量
     DIALOG_ZOMBATAR_TOS,                        // 51：僵尸大头贴用户协议
     DIALOG_ZOMBATAR_DELETE,                     // 52：僵尸大头贴删除确认
+    DIALOG_ZOMBATAR_EXPORT,                     // 53：僵尸大头贴导出成功通知
     NUM_DIALOGS
 };
 enum DebugTextMode

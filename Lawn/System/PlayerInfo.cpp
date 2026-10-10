@@ -98,6 +98,7 @@ void PlayerInfo::LoadDetails()
 		std::string aFileName = GetAppDataFolder() + StrFormat("userdata/user%d.dat", mId);
 		if (!gSexyAppBase->ReadBufferFromFile(aFileName, &aBuffer, false))
 		{
+			LoadZombatar();
 			return;
 		}
 
@@ -111,6 +112,7 @@ void PlayerInfo::LoadDetails()
 		TodTrace("Failed to player data, resetting it\n");
 		Reset();
 	}
+	LoadZombatar();
 }
 
 //0x4695F0
@@ -124,6 +126,76 @@ void PlayerInfo::SaveDetails()
 	MkDir(GetAppDataFolder() + "userdata");
 	std::string aFileName = GetAppDataFolder() + StrFormat("userdata/user%d.dat", mId);
 	gSexyAppBase->WriteBytesToFile(aFileName, aWriter.GetDataPtr(), aWriter.GetDataLen());
+	SaveZombatar();
+}
+
+void PlayerInfo::LoadZombatar()
+{
+	try
+	{
+		Buffer aBuffer;
+		std::string aFileName = GetAppDataFolder() + StrFormat("userdata/zombatar_%d.dat", mId);
+		if (!gSexyAppBase->ReadBufferFromFile(aFileName, &aBuffer, false))
+		{
+			return;
+		}
+
+		DataReader aReader;
+		aReader.OpenMemory(aBuffer.GetDataPtr(), aBuffer.GetDataLen(), false);
+		DataSync aSync(aReader);
+
+		int aVersion = 1;
+		aSync.SyncLong(aVersion);
+		if (aVersion != 1)
+			return;
+
+		aSync.SyncLong(mZombatarCreatedBefore);
+		aSync.SyncByte(mZombatarAccepted);
+
+		unsigned long aHeadCount = 0;
+		aSync.SyncLong(aHeadCount);
+		mZombatarHeadCount = aHeadCount;
+
+		unsigned long aDataSize = 0;
+		aSync.SyncLong(aDataSize);
+		if (aDataSize > 0)
+		{
+			mZombatarData.resize(aDataSize);
+			aSync.SyncBytes(mZombatarData.data(), aDataSize);
+		}
+	}
+	catch (DataReaderException&)
+	{
+	}
+}
+
+void PlayerInfo::SaveZombatar()
+{
+	if (mZombatarData.empty() && mZombatarHeadCount == 0)
+		return;
+
+	DataWriter aWriter;
+	aWriter.OpenMemory();
+	DataSync aSync(aWriter);
+
+	int aVersion = 1;
+	aSync.SyncLong(aVersion);
+	aSync.SyncLong(mZombatarCreatedBefore);
+	aSync.SyncByte(mZombatarAccepted);
+
+	unsigned long aHeadCount = mZombatarHeadCount;
+	aSync.SyncLong(aHeadCount);
+
+	unsigned long aDataSize = (unsigned long)mZombatarData.size();
+	aSync.SyncLong(aDataSize);
+	if (aDataSize > 0)
+	{
+		aSync.SyncBytes(mZombatarData.data(), aDataSize);
+	}
+
+	MkDir(GetAppDataFolder() + "userdata");
+	std::string aFileName = GetAppDataFolder() + StrFormat("userdata/zombatar_%d.dat", mId);
+	gSexyAppBase->WriteBytesToFile(aFileName, aWriter.GetDataPtr(), aWriter.GetDataLen());
 }
 
 //0x469810
@@ -131,6 +203,9 @@ void PlayerInfo::DeleteUserFiles()
 {
 	std::string aFilename = GetAppDataFolder() + StrFormat("userdata/user%d.dat", mId);
 	gSexyAppBase->EraseFile(aFilename);
+
+	std::string aZombatarFile = GetAppDataFolder() + StrFormat("userdata/zombatar_%d.dat", mId);
+	gSexyAppBase->EraseFile(aZombatarFile);
 
 	for (int i = 0; i < (int)GameMode::NUM_GAME_MODES; i++)
 	{

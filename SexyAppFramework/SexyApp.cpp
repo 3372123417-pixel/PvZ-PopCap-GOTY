@@ -587,13 +587,14 @@ void SexyApp::InitPropertiesHook()
 
 	std::string aNewTitle = GetString("Title", "");
 	if (aNewTitle.length() > 0)
-		mTitle = aNewTitle + " " + mProductVersion;	
+		mTitle = aNewTitle;	
 		
 	//mInternetManager->Init();
 	mBetaSupport = nullptr;//new BetaSupport(this);
 
-#ifdef ZYLOM
 	LoadProperties();
+
+#ifdef ZYLOM
 	ZylomGS_StandAlone_Init(mZylomGameId, (char*) GetString("BUG_REPORT_TITLE").c_str(), (char*) GetString("BUG_REPORT_BODY").c_str());
 #endif
 }

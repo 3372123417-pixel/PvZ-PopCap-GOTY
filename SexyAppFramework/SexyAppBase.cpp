@@ -2006,7 +2006,7 @@ bool SexyAppBase::ReadBufferFromFile(const std::string& theFileName, Buffer* the
 	}
 	else
 	{
-		FILE* aFP = fopen(theFileName.c_str(), "rb");
+		PFILE* aFP = p_fopen(theFileName.c_str(), "rb");
 
 		if (aFP == NULL)
 		{
@@ -2021,14 +2021,14 @@ bool SexyAppBase::ReadBufferFromFile(const std::string& theFileName, Buffer* the
 			return false;
 		}
 		
-		fseek(aFP, 0, SEEK_END);
-		int aFileSize = ftell(aFP);
-		fseek(aFP, 0, SEEK_SET);
+		p_fseek(aFP, 0, SEEK_END);
+		int aFileSize = p_ftell(aFP);
+		p_fseek(aFP, 0, SEEK_SET);
 		
 		uchar* aData = new uchar[aFileSize];
 
-		fread(aData, 1, aFileSize, aFP);
-		fclose(aFP);
+		p_fread(aData, 1, aFileSize, aFP);
+		p_fclose(aFP);
 
 		theBuffer->Clear();
 		theBuffer->SetData(aData, aFileSize);
@@ -2047,6 +2047,15 @@ bool SexyAppBase::ReadBufferFromFile(const std::string& theFileName, Buffer* the
 
 		return true;
 	}
+}
+
+bool SexyAppBase::ReadUTF8StringFromFile(const std::string& theFileName, std::string* theString)
+{
+	Buffer aBuffer;
+	if (!ReadBufferFromFile(theFileName, &aBuffer))
+		return false;
+
+	return aBuffer.ToUTF8String(theString);
 }
 
 bool SexyAppBase::FileExists(const std::string& theFileName)
@@ -2739,7 +2748,9 @@ int SexyAppBase::MsgBox(const std::string& theText, const std::string& theTitle,
 	}
 
 	BeginPopup();
-	int aResult = MessageBoxA(mHWnd, theText.c_str(), theTitle.c_str(), theFlags);
+	std::wstring aWText = Sexy::StringToWString(theText);
+	std::wstring aWTitle = Sexy::StringToWString(theTitle);
+	int aResult = MessageBoxW(mHWnd, aWText.c_str(), aWTitle.c_str(), theFlags);
 	EndPopup();
 
 	return aResult;
@@ -2772,7 +2783,11 @@ void SexyAppBase::Popup(const std::string& theString)
 
 	BeginPopup();
 	if (!mShutdown)
-		::MessageBoxA(mHWnd, theString.c_str(), SexyStringToString(GetString("FATAL_ERROR", _S("FATAL ERROR"))).c_str(), MB_APPLMODAL | MB_ICONSTOP);
+	{
+		std::wstring aWString = Sexy::StringToWString(theString);
+		std::wstring aTitle = Sexy::SexyStringToWString(GetString("FATAL_ERROR", _S("FATAL ERROR")));
+		::MessageBoxW(mHWnd, aWString.c_str(), aTitle.c_str(), MB_APPLMODAL | MB_ICONSTOP);
+	}
 	EndPopup();
 }
 
@@ -5701,7 +5716,7 @@ bool SexyAppBase::LoadProperties(const std::string& theFileName, bool required, 
 bool SexyAppBase::LoadProperties()
 {
 	// Load required language-file properties
-	return LoadProperties("properties\\default.xml", true, false);
+	return LoadProperties("properties\\default.xml", false, false);
 }
 
 void SexyAppBase::LoadResourceManifest()

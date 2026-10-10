@@ -183,10 +183,10 @@ void NewOptionsDialog::Draw(Sexy::Graphics* g)
     }
     Sexy::Color aTextColor(107, 109, 145);
 
-    TodDrawString(g, _S("Music"), 186, 140 + aMusicOffset, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_RIGHT);
-    TodDrawString(g, _S("Sound FX"), 186, 167 + aSfxOffset, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_RIGHT);
-    TodDrawString(g, _S("3D Acceleration"), 274, 197 + a3DAccelOffset, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_RIGHT);
-    TodDrawString(g, _S("Full Screen"), 274, 229 + aFullScreenOffset, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_RIGHT);
+    TodDrawString(g, mApp->GetString("OPTIONS_MUSIC_LABEL", _S("Music")), 186, 140 + aMusicOffset, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_RIGHT);
+    TodDrawString(g, mApp->GetString("OPTIONS_SOUNDFX", _S("Sound FX")), 186, 167 + aSfxOffset, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_RIGHT);
+    TodDrawString(g, mApp->GetString("OPTIONS_3D_ACCELERATION", _S("3D Acceleration")), 274, 197 + a3DAccelOffset, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_RIGHT);
+    TodDrawString(g, mApp->GetString("OPTIONS_FULL_SCREEN", _S("Full Screen")), 274, 229 + aFullScreenOffset, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_RIGHT);
 }
 
 //0x45CF50
@@ -221,11 +221,12 @@ void NewOptionsDialog::CheckboxChecked(int theId, bool checked)
             mApp->DoDialog(
                 Dialogs::DIALOG_COLORDEPTH_EXP, 
                 true, 
-                _S("No Windowed Mode"), 
-                _S( "Windowed mode is only available if your desktop was running in either\n"
+                mApp->GetString("NO_WINDOWED_MODE", _S("No Windowed Mode")), 
+                mApp->GetString("INVALID_WINDOWS_MODE",
+                    _S("Windowed mode is only available if your desktop was running in either\n"
                     "16 bit or 32 bit color mode when you started the game.\n\n"
-                    "If you'd like to run in Windowed mode then you need to quit the game and switch your desktop to 16 or 32 bit color mode."), 
-                _S("OK"), 
+                    "If you'd like to run in Windowed mode then you need to quit the game and switch your desktop to 16 or 32 bit color mode.")), 
+                _S("[DIALOG_BUTTON_OK]"), 
                 Dialog::BUTTONS_FOOTER
             );
 
@@ -246,12 +247,13 @@ void NewOptionsDialog::CheckboxChecked(int theId, bool checked)
                 mApp->DoDialog(
                     Dialogs::DIALOG_INFO,
                     true,
-                    _S("Not Supported"),
-                    _S( "Hardware Acceleration cannot be enabled on this computer.\n\n"
+                    mApp->GetString("NOT_SUPPORTED", _S("Not Supported")),
+                    mApp->GetString("HARDWARE_ACCELERATION_NOT_SUPPORTED",
+                        _S("Hardware Acceleration cannot be enabled on this computer.\n\n"
                         "Your video card does not\n"
                         "meet the minimum requirements\n"
-                        "for this game."),
-                    _S("OK"),
+                        "for this game.")),
+                    _S("[DIALOG_BUTTON_OK]"),
                     Dialog::BUTTONS_FOOTER
                 );
             }
@@ -263,10 +265,11 @@ void NewOptionsDialog::CheckboxChecked(int theId, bool checked)
                     mApp->DoDialog(
                         Dialogs::DIALOG_INFO,
                         true,
-                        _S("Warning"),
-                        _S( "Your video card may not fully support this feature.\n\n"
-                            "If you experience slower performance, please disable Hardware Acceleration.\n"),
-                        _S("OK"),
+                        mApp->GetString("DIALOG_WARNING", _S("Warning")),
+                        mApp->GetString("SLOW_PERFORMANCE",
+                            _S("Your video card may not fully support this feature.\n\n"
+                            "If you experience slower performance, please disable Hardware Acceleration.\n")),
+                        _S("[DIALOG_BUTTON_OK]"),
                         Dialog::BUTTONS_FOOTER
                     );
                 }
@@ -370,7 +373,7 @@ void NewOptionsDialog::ButtonDepress(int theId)
             }
 
             LawnDialog* aDialog = (LawnDialog*)mApp->DoDialog(Dialogs::DIALOG_CONFIRM_RESTART, true, aDialogTitle, aDialogMessage, _S(""), Dialog::BUTTONS_YES_NO);
-            aDialog->mLawnYesButton->mLabel = TodStringTranslate(_S("RESTART"/*[RESTART_LABEL]*/));
+            aDialog->mLawnYesButton->mLabel = mApp->GetString("RESTART_LABEL", TodStringTranslate(_S("[RESTART_LABEL]")));
             aDialog->mLawnNoButton->mLabel = TodStringTranslate(_S("[DIALOG_BUTTON_CANCEL]"));
             
             if (aDialog->WaitForResult(true) == Dialog::ID_YES)

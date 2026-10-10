@@ -61,8 +61,8 @@ ChallengeDefinition gChallengeDefs[NUM_CHALLENGE_MODES] = {
 	{ GameMode::GAMEMODE_CHALLENGE_SHOVEL,                     10,  ChallengePage::CHALLENGE_PAGE_LIMBO,       2,  0,  _S("[CAN_YOU_DIG_IT]") },
 	{ GameMode::GAMEMODE_CHALLENGE_STORMY_NIGHT,               13,  ChallengePage::CHALLENGE_PAGE_LIMBO,       2,  1,  _S("[DARK_STORMY_NIGHT]") },
 	{ GameMode::GAMEMODE_CHALLENGE_BUNGEE_BLITZ,               9,   ChallengePage::CHALLENGE_PAGE_LIMBO,       2,  2,  _S("[BUNGEE_BLITZ]") },
-	{ GameMode::GAMEMODE_CHALLENGE_SQUIRREL,                   10,  ChallengePage::CHALLENGE_PAGE_LIMBO,       2,  3,  _S("Squirrel") },
-	{ GameMode::GAMEMODE_TREE_OF_WISDOM,                       10,  ChallengePage::CHALLENGE_PAGE_LIMBO,       2,  4,  _S("Tree Of Wisdom") },
+	{ GameMode::GAMEMODE_CHALLENGE_SQUIRREL,                   10,  ChallengePage::CHALLENGE_PAGE_LIMBO,       2,  3,  _S("[SQUIRREL]") },
+	{ GameMode::GAMEMODE_TREE_OF_WISDOM,                       10,  ChallengePage::CHALLENGE_PAGE_LIMBO,       2,  4,  _S("[TREE_OF_WISDOM]") },
 	{ GameMode::GAMEMODE_SCARY_POTTER_1,                       10,  ChallengePage::CHALLENGE_PAGE_PUZZLE,      0,  0,  _S("[SCARY_POTTER_1]") },
 	{ GameMode::GAMEMODE_SCARY_POTTER_2,                       10,  ChallengePage::CHALLENGE_PAGE_PUZZLE,      0,  1,  _S("[SCARY_POTTER_2]") },
 	{ GameMode::GAMEMODE_SCARY_POTTER_3,                       10,  ChallengePage::CHALLENGE_PAGE_PUZZLE,      0,  2,  _S("[SCARY_POTTER_3]") },
@@ -83,8 +83,8 @@ ChallengeDefinition gChallengeDefs[NUM_CHALLENGE_MODES] = {
 	{ GameMode::GAMEMODE_PUZZLE_I_ZOMBIE_8,                    11,  ChallengePage::CHALLENGE_PAGE_PUZZLE,      3,  2,  _S("[I_ZOMBIE_8]") },
 	{ GameMode::GAMEMODE_PUZZLE_I_ZOMBIE_9,                    11,  ChallengePage::CHALLENGE_PAGE_PUZZLE,      3,  3,  _S("[I_ZOMBIE_9]") },
 	{ GameMode::GAMEMODE_PUZZLE_I_ZOMBIE_ENDLESS,              11,  ChallengePage::CHALLENGE_PAGE_PUZZLE,      3,  4,  _S("[I_ZOMBIE_ENDLESS]") },
-	{ GameMode::GAMEMODE_UPSELL,                               10,  ChallengePage::CHALLENGE_PAGE_LIMBO,       3,  4,  _S("Upsell") },
-	{ GameMode::GAMEMODE_INTRO,                                10,  ChallengePage::CHALLENGE_PAGE_LIMBO,       2,  3,  _S("Intro") }
+	{ GameMode::GAMEMODE_UPSELL,                               10,  ChallengePage::CHALLENGE_PAGE_LIMBO,       3,  4,  _S("[UPSELL]") },
+	{ GameMode::GAMEMODE_INTRO,                                10,  ChallengePage::CHALLENGE_PAGE_LIMBO,       2,  3,  _S("[INTRO]") }
 };
 
 //0x42DAE0
@@ -115,7 +115,7 @@ ChallengeScreen::ChallengeScreen(LawnApp* theApp, ChallengePage thePage)
 		aPageButton->mDoFinger = true;
 		mPageButton[aPageIdx] = aPageButton;
 		if (aPageIdx == CHALLENGE_PAGE_LIMBO)
-			aPageButton->mLabel = TodStringTranslate(_S("Limbo Page"));
+			aPageButton->mLabel = mApp->GetString("LIMBO_PAGE_BUTTON", TodStringTranslate(_S("[LIMBO_PAGE_BUTTON]")));
 		else
 			aPageButton->mLabel = TodReplaceNumberString(_S("[PAGE_X]"), _S("{PAGE}"), aPageIdx);
 		aPageButton->mButtonImage = Sexy::IMAGE_BLANK;
@@ -434,59 +434,59 @@ void ChallengeScreen::DrawButton(Graphics* g, int theChallengeIndex)
 				aName = _S("?");
 			}
 
-			int aNameLen = aName.size();
-			if (aNameLen < 13)
+			int aNameCharLen = 0;
+			{
+				size_t aOffset = 0;
+				unsigned int aChar = 0;
+				while (Sexy::UTF8DecodeNext(aName, aOffset, aChar))
+					aNameCharLen++;
+			}
+
+			const int aAutoWrapNum = mApp->GetInteger("CHALLENGE_SCREEN_BUTTON_AUTO_WRAP_NUM", 13);
+			if (aNameCharLen < aAutoWrapNum)
 			{
 				TodDrawString(g, aName, aPosX + 52, aPosY + 96, Sexy::FONT_BRIANNETOD12, aTextColor, DS_ALIGN_CENTER);
 			}
 			else
 			{
-				// 先尝试在名称字符串的后半段取空格以将字符串分隔为两行，若后半段中无空格则在整个字符串中寻找空格
-				int aHalfPos = (mPageIndex == CHALLENGE_PAGE_SURVIVAL && !aChallengeButton->mDisabled) ? 7 : (aNameLen / 2 - 1);
-				const SexyChar* aSpacedChar = _S(aName.c_str() + aHalfPos, _S(' '));
-				while(aSpacedChar[0]!=' ')
+				const int aHalfPosChar = (mPageIndex == CHALLENGE_PAGE_SURVIVAL && !aChallengeButton->mDisabled) ? 7 : (aNameCharLen / 2 - 1);
+				size_t aSplitBytePos = SexyString::npos;
+				size_t aFallbackSpacePos = SexyString::npos;
+
 				{
-					aHalfPos++;
-					aSpacedChar = _S(aName.c_str() + aHalfPos, _S(' '));
-					if(aSpacedChar[0]=='\0')
+					size_t aOffset = 0;
+					int aCharIdx = 0;
+					while (true)
 					{
-						aHalfPos--;
-						aSpacedChar = _S(aName.c_str() + aHalfPos, _S(' '));
-						break;
+						const size_t aCharStart = aOffset;
+						unsigned int aChar = 0;
+						if (!Sexy::UTF8DecodeNext(aName, aOffset, aChar))
+							break;
+
+						if (aChar == U' ')
+						{
+							if (aCharIdx >= aHalfPosChar)
+							{
+								aSplitBytePos = aCharStart;
+								break;
+							}
+							if (aFallbackSpacePos == SexyString::npos)
+								aFallbackSpacePos = aCharStart;
+						}
+						aCharIdx++;
 					}
 				}
-				aHalfPos--;
-				aSpacedChar = _S(aName.c_str() + aHalfPos, _S(' '));
+				if (aSplitBytePos == SexyString::npos)
+					aSplitBytePos = aFallbackSpacePos;
 
-				
-				if (aSpacedChar == nullptr)
+				if (aSplitBytePos != SexyString::npos)
 				{
-					aSpacedChar = _S(aName.c_str(), _S(' '));
-				}
-
-				// 分别计算取得两行文本的长度
-				int aLine1Len = aNameLen;
-				int aLine2Len = 0;
-				if (aSpacedChar != nullptr)
-				{
-					aLine1Len = aSpacedChar - aName.c_str();
-					aLine2Len = aNameLen - aLine1Len - 1;
-				}
-				
-				// 分别绘制两行文本字符串
-				auto topStr=aName.substr(0, aLine1Len+1);
-				auto botStr=aName.substr(aLine1Len + 1, aLine2Len);
-				if(botStr.empty())
-				{
-					TodDrawString(g, aName, aPosX + 52, aPosY + 96, Sexy::FONT_BRIANNETOD12, aTextColor, DS_ALIGN_CENTER);
+					TodDrawString(g, aName.substr(0, aSplitBytePos), aPosX + 52, aPosY + 88, Sexy::FONT_BRIANNETOD12, aTextColor, DS_ALIGN_CENTER);
+					TodDrawString(g, aName.substr(aSplitBytePos + 1), aPosX + 52, aPosY + 102, Sexy::FONT_BRIANNETOD12, aTextColor, DS_ALIGN_CENTER);
 				}
 				else
 				{
-					TodDrawString(g, topStr, aPosX + 52, aPosY + 88, Sexy::FONT_BRIANNETOD12, aTextColor, DS_ALIGN_CENTER);
-					if (aLine2Len > 0)
-					{
-						TodDrawString(g, botStr, aPosX + 52, aPosY + 102, Sexy::FONT_BRIANNETOD12, aTextColor, DS_ALIGN_CENTER);
-					}
+					TodDrawString(g, aName, aPosX + 52, aPosY + 96, Sexy::FONT_BRIANNETOD12, aTextColor, DS_ALIGN_CENTER);
 				}
 			
 			}

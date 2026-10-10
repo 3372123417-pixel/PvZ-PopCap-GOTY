@@ -25,39 +25,79 @@ ToolTipWidget::ToolTipWidget()
 void ToolTipWidget::GetLines(std::vector<SexyString>& theLines)
 {
 	int aLineWidth = 0;
-	unsigned int aIndexStart = 0;
-	unsigned int aIndexInLine = 0;
+	size_t aLineStart = 0;
+	size_t aCurPos = 0;
+	unsigned int aPrevChar = 0;
 
-	while (aIndexInLine != mLabel.size())
+	int aBreakDrawLen = -1;
+	size_t aBreakResumePos = 0;
+
+	while (aCurPos < mLabel.size())
 	{
-		while (aIndexInLine < mLabel.size() && mLabel[aIndexInLine] != ' ' && mLabel[aIndexInLine] != '\n')
+		size_t aCharStart = aCurPos;
+		unsigned int aChar;
+		if (!Sexy::UTF8DecodeNext(mLabel, aCurPos, aChar))
 		{
-			aLineWidth += FONT_PICO129->CharWidth(mLabel[aIndexInLine]);
-			aIndexInLine++;
+			aCurPos = aCharStart + 1;
+			continue;
 		}
+		if (aChar == U'\r')
+			continue;
+		size_t aCharEnd = aCurPos;
 
-		if (aIndexInLine != mLabel.size() && aLineWidth < mGetsLinesWidth && mLabel[aIndexInLine] != '\n')
+		if (aChar == U'\n')
 		{
-			aLineWidth += FONT_PICO129->CharWidth(mLabel[aIndexInLine]);
-			aIndexInLine++;
-		}
-		else
-		{
-			SexyString aLine = mLabel.substr(aIndexStart, aIndexInLine - aIndexStart);
+			theLines.push_back(mLabel.substr(aLineStart, aCharStart - aLineStart));
 			aLineWidth = 0;
-			theLines.push_back(aLine);
-
-			if (aIndexInLine < mLabel.size() && mLabel[aIndexInLine] == '\n')
-			{
-				aIndexInLine++;
-			}
-			while (aIndexInLine < mLabel.size() && mLabel[aIndexInLine] == ' ')
-			{
-				aIndexInLine++;
-			}
-
-			aIndexStart = aIndexInLine;
+			aLineStart = aCharEnd;
+			aBreakDrawLen = -1;
+			aPrevChar = 0;
+			continue;
 		}
+
+		aLineWidth += FONT_PICO129->CharWidthUInt(aChar);
+
+		if (aChar == U' ')
+		{
+			aBreakDrawLen = (int)(aCharStart - aLineStart);
+			aBreakResumePos = aCharEnd;
+			if (aLineWidth >= mGetsLinesWidth)
+			{
+				theLines.push_back(mLabel.substr(aLineStart, aBreakDrawLen));
+				aCurPos = aBreakResumePos;
+				while (aCurPos < mLabel.size() && mLabel[aCurPos] == ' ')
+					aCurPos++;
+				aLineStart = aCurPos;
+				aLineWidth = 0;
+				aBreakDrawLen = -1;
+				aPrevChar = 0;
+				continue;
+			}
+		}
+		else if (Sexy::IsAutoBreakChar(aChar) &&
+			!Sexy::IsClosingPunctuation(aChar) &&
+			aCharStart > aLineStart &&
+			!Sexy::IsOpeningPunctuation(aPrevChar))
+		{
+			aBreakDrawLen = (int)(aCharStart - aLineStart);
+			aBreakResumePos = aCharStart;
+			if (aLineWidth >= mGetsLinesWidth)
+			{
+				theLines.push_back(mLabel.substr(aLineStart, aBreakDrawLen));
+				aCurPos = aBreakResumePos;
+				aLineStart = aCurPos;
+				aLineWidth = 0;
+				aBreakDrawLen = -1;
+				aPrevChar = 0;
+				continue;
+			}
+		}
+		aPrevChar = aChar;
+	}
+
+	if (aLineStart < mLabel.size())
+	{
+		theLines.push_back(mLabel.substr(aLineStart));
 	}
 }
 

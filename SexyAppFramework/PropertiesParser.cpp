@@ -248,7 +248,9 @@ bool PropertiesParser::ParsePropertiesBuffer(const Buffer& theBuffer)
 {
 	mXMLParser = new XMLParser();
 
-	mXMLParser->SetStringSource(theBuffer.UTF8ToWideString());
+	// Auto-detect encoding and convert to UTF-8, then to wide string for internal processing
+	std::string aUTF8String = theBuffer.ToUTF8String();
+	mXMLParser->SetStringSource(aUTF8String);
 	return DoParseProperties();
 }
 

@@ -32,6 +32,8 @@ public:
 	virtual int				StringWidth(const SexyString& theString);
 	virtual int				CharWidth(SexyChar theChar);
 	virtual int				CharWidthKern(SexyChar theChar, SexyChar thePrevChar);
+	virtual int				CharWidthUInt(unsigned int theChar);
+	virtual int				CharWidthKernUInt(unsigned int theChar, unsigned int thePrevChar);
 
 	virtual void			DrawString(Graphics* g, int theX, int theY, const SexyString& theString, const Color& theColor, const Rect& theClipRect);
 

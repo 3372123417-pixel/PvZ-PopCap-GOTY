@@ -1649,7 +1649,7 @@ void CutScene::AdvanceCrazyDaveDialog(bool theJustSkipping)
 	{
 		int aCost = StoreScreen::GetItemCost(StoreItem::STORE_ITEM_PACKET_UPGRADE);
 		int aNumPackets = mApp->mPlayerInfo->mPurchases[(int)StoreItem::STORE_ITEM_PACKET_UPGRADE];
-		SexyString aBodyString = TodReplaceNumberString(_S("[UPGRADE_DIALOG_BODY]"), _S("{SLOTS}"), aNumPackets + 1);
+		SexyString aBodyString = TodReplaceNumberString(_S("[UPGRADE_DIALOG_BODY]"), _S("{SLOTS}"), aNumPackets + 7);
 		SexyString aAmountString = mApp->GetMoneyString(aCost);
 		// 创建询问是否升级卡槽格数的对话
 		Dialog* aDialog = mApp->DoDialog(Dialogs::DIALOG_PURCHASE_PACKET_SLOT, true, aAmountString, aBodyString, _S(""), Dialog::BUTTONS_YES_NO);

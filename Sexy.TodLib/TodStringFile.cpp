@@ -3,6 +3,7 @@
 #include "TodStringFile.h"
 #include "../PakLib/PakInterface.h"
 #include "../SexyAppFramework/Font.h"
+#include "../SexyAppFramework/Common.h"
 
 int gTodStringFormatCount;               //[0x69DE4C]
 TodStringListFormat* gTodStringFormats;  //[0x69DA34]
@@ -148,7 +149,12 @@ bool TodStringListReadFile(const char* theFileName)
 	aFileText[aSize] = '\0';
 	if (aSuccess)
 	{
-		aSuccess = TodStringListReadItems(aFileText);
+		// Auto-detect encoding and convert to UTF-8
+		std::string aUTF8Text = Sexy::AutoDetectEncodingToUTF8(aFileText, aSize);
+		char* aUTF8Buffer = new char[aUTF8Text.length() + 1];
+		strcpy(aUTF8Buffer, aUTF8Text.c_str());
+		aSuccess = TodStringListReadItems(aUTF8Buffer);
+		delete[] aUTF8Buffer;
 	}
 	p_fclose(pFile);  // 关闭文件流
 	delete[] aFileText;
@@ -335,114 +341,141 @@ int TodDrawStringWrappedHelper(Graphics* g, const SexyString& theText, const Rec
 
 	int aYOffset = theFont->GetAscent() - theFont->GetAscentPadding();
 	int aLineSpacing = theFont->GetLineSpacing() + aCurrentFormat.mLineSpacingOffset;
-	SexyString aCurString;
-	int aLineFeedPos = 0;
-	int aCurPos = 0;
+	size_t aLineFeedPos = 0;
+	size_t aCurPos = 0;
 	int aCurWidth = 0;
-	SexyChar aCurChar = '\0';
-	SexyChar aPrevChar = '\0';
-	int aSpacePos = -1;
+	unsigned int aCurChar = 0;
+	unsigned int aPrevChar = 0;
+	int aBreakDrawLen = -1;
+	size_t aBreakResumePos = 0;
+	bool aBreakSkipSpaces = false;
 	int aMaxWidth = 0;
 	while (aCurPos < theText.size())
 	{
-		aCurChar = theText[aCurPos];
-		if (aCurChar == '{')  // 如果当前字符是特殊格式控制字符的起始标志（即“{”）
+		size_t aCharStart = aCurPos;
+
+		if (theText[aCurPos] == '{')
 		{
 			const char* aFmtStart = theText.c_str() + aCurPos;
 			const char* aFormat = aFmtStart + 1;
 			const char* aFmtEnd = strchr(aFormat, '}');
-			if (aFmtEnd != nullptr)  // 如果存在与“{”对应的“}”，即存在完整的控制字符
+			if (aFmtEnd != nullptr)
 			{
-				aCurPos += aFmtEnd - aFmtStart + 1;  // aCurPos 移至“}”的下一个字符处
+				aCurPos += aFmtEnd - aFmtStart + 1;
 				int aOldAscentOffset = theFont->GetAscent() - theFont->GetAscentPadding();
-				Color aExistingColor = aCurrentFormat.mNewColor;  // 备份当前格式的颜色
-				TodWriteStringSetFormat(aFormat, aCurrentFormat);  // 根据当前控制字符设置新的格式
-				aCurrentFormat.mNewColor = aExistingColor;  // 还原为原有格式的颜色
+				Color aExistingColor = aCurrentFormat.mNewColor;
+				TodWriteStringSetFormat(aFormat, aCurrentFormat);
+				aCurrentFormat.mNewColor = aExistingColor;
 				int aNewAscentOffset = (*aCurrentFormat.mNewFont)->GetAscent() - (*aCurrentFormat.mNewFont)->GetAscentPadding();
 				aLineSpacing = (*aCurrentFormat.mNewFont)->GetLineSpacing() + aCurrentFormat.mLineSpacingOffset;
 				aYOffset += aNewAscentOffset - aOldAscentOffset;
 				continue;
 			}
 		}
-		else if (CharIsSpaceInFormat(aCurChar, aCurrentFormat))
+
+		if (!Sexy::UTF8DecodeNext(theText, aCurPos, aCurChar))
 		{
-			aSpacePos = aCurPos;
-			aCurChar = ' ';
+			aCurPos = aCharStart + 1;
+			continue;
 		}
-		else if (aCurChar == '\n')
+		if (aCurChar == U'\r')
+			continue;
+		size_t aCharEnd = aCurPos;
+		bool aIsNewline = (aCurChar == U'\n');
+		bool aIsSpace = !aIsNewline && (aCurChar == U' ');
+
+		if (aIsSpace)
 		{
-			aSpacePos = aCurPos;
+			aBreakDrawLen = (int)(aCharStart - aLineFeedPos);
+			aBreakResumePos = aCharEnd;
+			aBreakSkipSpaces = true;
+			aCurChar = U' ';
+		}
+		else if (aIsNewline)
+		{
+			aBreakDrawLen = (int)(aCharStart - aLineFeedPos);
+			aBreakResumePos = aCharEnd;
+			aBreakSkipSpaces = false;
 			aCurWidth = theRect.mWidth + 1;
-			aCurPos++;
 		}
 
-		aCurWidth += (*aCurrentFormat.mNewFont)->CharWidthKern(aCurChar, aPrevChar);  // 当前宽度加上当前字符的宽度
+		aCurWidth += (*aCurrentFormat.mNewFont)->CharWidthKernUInt(aCurChar, aPrevChar);
+
+		if (!aIsSpace && !aIsNewline && Sexy::IsAutoBreakChar(aCurChar) &&
+			!Sexy::IsClosingPunctuation(aCurChar) &&
+			aCharStart > aLineFeedPos &&
+			!Sexy::IsOpeningPunctuation(aPrevChar))
+		{
+			aBreakDrawLen = (int)(aCharStart - aLineFeedPos);
+			aBreakResumePos = aCharStart;
+			aBreakSkipSpaces = false;
+		}
 		aPrevChar = aCurChar;
-		if (aCurWidth > theRect.mWidth)  // 如果当前宽度超出了限制区域的宽度，则进行换行的处理
+
+		if (aCurWidth > theRect.mWidth)
 		{
 			int aLineWidth;
-			if (aSpacePos != -1)  // 如果本行前面的字符中存在空格字符
+			if (aBreakDrawLen >= 0)
 			{
 				int aCurY = (int)g->mTransY + theRect.mY + aYOffset;
-				if (aCurY >= g->mClipRect.mY && aCurY <= g->mClipRect.mY + g->mClipRect.mHeight + aLineSpacing)  // 确保当前绘制位置纵坐标在裁剪范围内
+				if (aCurY >= g->mClipRect.mY && aCurY <= g->mClipRect.mY + g->mClipRect.mHeight + aLineSpacing)
 				{
 					TodWriteWordWrappedHelper(
-						g, 
-						theText, 
-						theRect.mX, 
+						g,
+						theText,
+						theRect.mX,
 						theRect.mY + aYOffset,
-						aCurrentFormat, 
-						theRect.mWidth, 
-						theJustification, 
-						drawString, 
-						aLineFeedPos, // 上次换行的位置即为新行开始的位置
-						aSpacePos - aLineFeedPos, // 绘制部分为从上次换行的位置开始至本行空格字符之前的文本
+						aCurrentFormat,
+						theRect.mWidth,
+						theJustification,
+						drawString,
+						aLineFeedPos,
+						aBreakDrawLen,
 						theMaxChars
-					);  // 绘制新一行的文本（若需要）
+					);
 				}
 
 				aLineWidth = aCurWidth;
-				if (aLineWidth < 0)  // 如果本行字符总宽度小于 0
+				if (aLineWidth < 0)
 					break;
 
-				aCurPos = aSpacePos + 1;  // 将 aCurPos 移至下一行的开始处
-				if (aCurChar != '\n')
-					while (aCurPos < theText.size() && CharIsSpaceInFormat(theText[aCurPos], aCurrentFormat))
-						aCurPos++;  // aCurPos 跳过所有连续的空白字符
+				aCurPos = aBreakResumePos;
+				if (aBreakSkipSpaces)
+					while (aCurPos < theText.size() && theText[aCurPos] == ' ')
+						aCurPos++;
 			}
 			else
 			{
-				if (aCurPos < aLineFeedPos + 1)
-					aCurPos++;  // 确保每行至少有 1 个字符
+				size_t aDrawEnd = aCharStart;
+				if (aDrawEnd <= aLineFeedPos)
+					aDrawEnd = aCharEnd;
 
 				aLineWidth = TodWriteWordWrappedHelper(
 					g,
 					theText,
 					theRect.mX,
 					theRect.mY + aYOffset,
-					aCurrentFormat, 
-					theRect.mWidth, 
-					theJustification, 
-					drawString, 
-					aLineFeedPos, // 上次换行的位置即为新行开始的位置
-					aCurPos - aLineFeedPos, // 绘制部分为从上次换行的位置开始至当前位置的文本
+					aCurrentFormat,
+					theRect.mWidth,
+					theJustification,
+					drawString,
+					aLineFeedPos,
+					aDrawEnd - aLineFeedPos,
 					theMaxChars
-				);  // 绘制新一行的文本（若需要）
-				if (aLineWidth < 0)  // 如果本行字符总宽度小于 0
+				);
+				if (aLineWidth < 0)
 					break;
+
+				aCurPos = aDrawEnd;
 			}
 
 			if (aLineWidth > aMaxWidth)
-				aMaxWidth = aLineWidth;  // 更新最大行宽度
+				aMaxWidth = aLineWidth;
 			aYOffset += aLineSpacing;
-			aLineFeedPos = aCurPos;  // 记录当前位置为“上次换行的位置”
-			aSpacePos = -1;
+			aLineFeedPos = aCurPos;
+			aBreakDrawLen = -1;
 			aCurWidth = 0;
-			aPrevChar = '\0';
-		}
-		else  // 当前宽度未超过限制区域宽度时
-		{
-			aCurPos++;  // 继续下一个字符
+			aPrevChar = 0;
 		}
 	}
 
@@ -457,10 +490,10 @@ int TodDrawStringWrappedHelper(Graphics* g, const SexyString& theText, const Rec
 			theRect.mWidth,
 			theJustification,
 			drawString,
-			aLineFeedPos, // 上次换行的位置即为最后一行开始的位置
-			theText.size() - aLineFeedPos, // 绘制部分为从上次换行的位置开始的所有剩余文本
+			aLineFeedPos,
+			theText.size() - aLineFeedPos,
 			theMaxChars
-		);  // 绘制最后一行的文本
+		);
 		if (aLastLineLength >= 0)
 			aYOffset += aLineSpacing;
 	}

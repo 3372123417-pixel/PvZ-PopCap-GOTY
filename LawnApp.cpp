@@ -48,6 +48,7 @@
 #include "SexyAppFramework/BassMusicInterface.h"
 #include "SexyAppFramework/Dialog.h"
 #include "SexyAppFramework/resource.h"
+#include "PakLib/PakInterface.h"
 
 bool gIsPartnerBuild = false;
 bool gSlowMo = false;  //0x6A9EAA
@@ -656,14 +657,14 @@ void LawnApp::DoConfirmBackToMain()
 	LawnDialog* aDialog = (LawnDialog*)DoDialog(
 		Dialogs::DIALOG_CONFIRM_BACK_TO_MAIN, 
 		true, 
-		_S("Leave Game?"/*"[LEAVE_GAME]"*/),
-		_S("Do you want to return\nto the main menu?\n\nYour game will be saved."/*"[LEAVE_GAME_HEADER]"*/), 
+		GetString("LEAVE_GAME_HEADER", _S("Leave Game?")),
+		GetString("LEAVE_GAME", _S("Do you want to return\nto the main menu?\n\nYour game will be saved.")), 
 		"", 
 		Dialog::BUTTONS_YES_NO
 	);
 
-	aDialog->mLawnYesButton->mLabel = TodStringTranslate("[LEAVE_BUTTON]");
-	aDialog->mLawnNoButton->mLabel = TodStringTranslate("[DIALOG_BUTTON_CANCEL]");
+	aDialog->mLawnYesButton->mLabel = TodStringTranslate(_S("[LEAVE_BUTTON]"));
+	aDialog->mLawnNoButton->mLabel = TodStringTranslate(_S("[DIALOG_BUTTON_CANCEL]"));
 	//aDialog->CalcSize(0, 0);
 }
 
@@ -722,9 +723,9 @@ void LawnApp::DoPauseDialog()
 	LawnDialog* aDialog = (LawnDialog*)DoDialog(
 		Dialogs::DIALOG_PAUSED,
 		true,
-		_S("GAME PAUSED"/*"[GAME_PAUSED]"*/),
-		_S("Click to resume game"), 
-		_S("Resume Game"/*"[RESUME_GAME]"*/),
+		GetString("GAME_PAUSED", _S("GAME PAUSED")),
+		GetString("CLICK_TO_RESUME", _S("Click to resume game")), 
+		GetString("RESUME_GAME", _S("Resume Game")),
 		Dialog::BUTTONS_FOOTER
 	);
 
@@ -848,9 +849,9 @@ void LawnApp::FinishCreateUserDialog(bool isYes)
 		DoDialog(
 			Dialogs::DIALOG_CREATEUSERERROR,
 			true,
-			_S("Enter Your Name"),
-			_S("Please enter your name to create a new user profile for storing high score data and game progress"),
-			_S("OK"),
+			GetString("ENTER_YOUR_NAME", _S("Enter Your Name")),
+			GetString("USER_ERROR_MESSAGE", _S("Please enter your name to create a new user profile for storing high score data and game progress")),
+			_S("[DIALOG_BUTTON_OK]"),
 			Dialog::BUTTONS_FOOTER
 		);
 	}
@@ -859,9 +860,9 @@ void LawnApp::FinishCreateUserDialog(bool isYes)
 		DoDialog(
 			Dialogs::DIALOG_CREATEUSERERROR,
 			true,
-			_S("Enter Your Name"/*"[ENTER_YOUR_NAME]"*/),
-			_S("Please enter your name to create a new user profile for storing high score data and game progress"/*"[ENTER_NEW_USER]"*/),
-			_S("OK"/*"[DIALOG_BUTTON_OK]"*/),
+			GetString("ENTER_YOUR_NAME", _S("Enter Your Name")),
+			GetString("ENTER_NEW_USER", _S("Please enter your name to create a new user profile for storing high score data and game progress")),
+			_S("[DIALOG_BUTTON_OK]"),
 			Dialog::BUTTONS_FOOTER
 		);
 	}
@@ -877,9 +878,9 @@ void LawnApp::FinishCreateUserDialog(bool isYes)
 			DoDialog(
 				Dialogs::DIALOG_CREATEUSERERROR,
 				true,
-				_S("Name Conflict"/*"[NAME_CONFLICT]"*/),
-				_S("The name you entered is already being used.  Please enter a unique player name"/*"[ENTER_UNIQUE_PLAYER_NAME]"*/),
-				_S("OK"/*"[DIALOG_BUTTON_OK]"*/),
+				GetString("NAME_CONFLICT", _S("Name Conflict")),
+				GetString("ENTER_UNIQUE_PLAYER_NAME", _S("The name you entered is already being used.  Please enter a unique player name")),
+				_S("[DIALOG_BUTTON_OK]"),
 				Dialog::BUTTONS_FOOTER
 			);
 		}
@@ -907,9 +908,8 @@ void LawnApp::DoConfirmDeleteUserDialog(const SexyString& theName)
 	DoDialog(
 		Dialogs::DIALOG_CONFIRMDELETEUSER, 
 		true, 
-		_S("Are You Sure"/*"[ARE_YOU_SURE]"*/), 
-		// StrFormat(TodStringTranslate(_S("[DELETE_USER_WARNING]")).c_str(), StringToSexyStringFast(theName))
-		StrFormat(_S("This will permanently remove '%s' from the player roster!"), theName.c_str()),
+		GetString("ARE_YOU_SURE", _S("Are You Sure")), 
+		StrFormat(GetString("DELETE_USER_WARNING", _S("This will permanently remove '%s' from the player roster!")).c_str(), theName.c_str()),
 		_S(""), 
 		Dialog::BUTTONS_YES_NO
 	);
@@ -996,9 +996,9 @@ void LawnApp::FinishRenameUserDialog(bool isYes)
 		DoDialog(
 			Dialogs::DIALOG_RENAMEUSERERROR,
 			true,
-			_S("Name Conflict"/*"[NAME_CONFLICT]"*/),
-			_S("The name you entered is already being used.  Please enter a unique player name"/*"[ENTER_UNIQUE_PLAYER_NAME]"*/),
-			_S("OK"/*"[DIALOG_BUTTON_OK]"*/),
+			GetString("NAME_CONFLICT", _S("Name Conflict")),
+			GetString("ENTER_UNIQUE_PLAYER_NAME", _S("The name you entered is already being used.  Please enter a unique player name")),
+			_S("[DIALOG_BUTTON_OK]"),
 			Dialog::BUTTONS_FOOTER
 		);
 		return;
@@ -1081,7 +1081,7 @@ void LawnApp::DoConfirmSellDialog(const SexyString& theMessage)
 
 void LawnApp::DoConfirmPurchaseDialog(const SexyString& theMessage)
 {
-	LawnDialog* aComfirmDialog = (LawnDialog*)DoDialog(Dialogs::DIALOG_STORE_PURCHASE, true, _S("买下这个物品？"), theMessage, _S(""), Dialog::BUTTONS_YES_NO);
+	LawnDialog* aComfirmDialog = (LawnDialog*)DoDialog(Dialogs::DIALOG_STORE_PURCHASE, true, GetString("BUY_ITEM_HEADER", _S("Buy this item?")), theMessage, _S(""), Dialog::BUTTONS_YES_NO);
 	aComfirmDialog->mLawnYesButton->mLabel = TodStringTranslate(_S("[DIALOG_BUTTON_YES]"));
 	aComfirmDialog->mLawnNoButton->mLabel = TodStringTranslate(_S("[DIALOG_BUTTON_NO]"));
 }
@@ -1702,8 +1702,67 @@ void LawnApp::LoadingThreadProc()
 	if (!TodLoadResources("LoaderBar"))
 		return;
 
+	// Save LOCALE before LawnStrings.txt overwrites it with "English_United States"
+	std::string aLocale = SexyStringToString(GetString("LOCALE", _S("")));
+
 	TodStringListLoad("Properties\\LawnStrings.txt");
-	TodStringListLoad("Properties\\ZombatarTOS.txt");
+
+	{
+		PFILE* pFile = p_fopen("Properties\\ZombatarTOS.txt", "rb");
+		if (pFile != NULL)
+		{
+			p_fclose(pFile);
+			TodStringListLoad("Properties\\ZombatarTOS.txt");
+		}
+	}
+
+	// Multi-language Zombatar save notification - hardcoded for all language versions
+	{
+		if (aLocale.find("Chinese") != std::string::npos)
+		{
+			SetString("ZOMBATAR_SAVED_TO_DESKTOP", L"你的僵尸大头贴已在你的桌面上另存为一份JPG图像。\n！");
+		}
+		else if (aLocale.find("Japanese") != std::string::npos)
+		{
+			SetString("ZOMBATAR_SAVED_TO_DESKTOP", L"あなたのゾンバターがデスクトップにJPG画像ファイルとして保存されました。\n！");
+		}
+		else if (aLocale.find("Korean") != std::string::npos)
+		{
+			SetString("ZOMBATAR_SAVED_TO_DESKTOP", L"당신의 좀바타가 데스크톱에 JPG 이미지 파일로 저장되었습니다.\n!");
+		}
+		else if (aLocale.find("German") != std::string::npos)
+		{
+			SetString("ZOMBATAR_SAVED_TO_DESKTOP", L"Dein Zombatar wurde als JPG-Bilddatei auf deinem Desktop gespeichert.\n!");
+		}
+		else if (aLocale.find("Spanish") != std::string::npos)
+		{
+			SetString("ZOMBATAR_SAVED_TO_DESKTOP", L"\u00a1Tu Zombatar se ha guardado en tu escritorio como archivo de imagen JPG.\n!");
+		}
+		else if (aLocale.find("French") != std::string::npos)
+		{
+			SetString("ZOMBATAR_SAVED_TO_DESKTOP", L"Votre Zombatar a \u00e9t\u00e9 enregistr\u00e9 sur votre bureau en tant que fichier image JPG.\n!");
+		}
+		else if (aLocale.find("Italian") != std::string::npos)
+		{
+			SetString("ZOMBATAR_SAVED_TO_DESKTOP", L"Il tuo Zombatar \u00e8 stato salvato sul desktop come file immagine JPG.\n!");
+		}
+		else if (aLocale.find("Portuguese") != std::string::npos)
+		{
+			SetString("ZOMBATAR_SAVED_TO_DESKTOP", L"Seu Zombatar foi salvo em sua \u00e1rea de trabalho como um arquivo de imagem JPG.\n!");
+		}
+		else if (aLocale.find("Swedish") != std::string::npos)
+		{
+			SetString("ZOMBATAR_SAVED_TO_DESKTOP", L"Din Zombatar har sparats p\u00e5 ditt skrivbord som en JPG-bildfil.\n!");
+		}
+		else if (aLocale.find("Dutch") != std::string::npos)
+		{
+			SetString("ZOMBATAR_SAVED_TO_DESKTOP", L"Je Zombatar is op je bureaublad opgeslagen als een JPG-afbeeldingsbestand.\n!");
+		}
+		else if (aLocale.find("Russian") != std::string::npos)
+		{
+			SetString("ZOMBATAR_SAVED_TO_DESKTOP", L"\u0412\u0430\u0448 \u0417\u043e\u043c\u0431\u0430\u0442\u0430\u0440 \u0441\u043e\u0445\u0440\u0430\u043d\u0451\u043d \u043d\u0430 \u0440\u0430\u0431\u043e\u0447\u0435\u043c \u0441\u0442\u043e\u043b\u0435 \u0432 \u0432\u0438\u0434\u0435 \u0444\u0430\u0439\u043b\u0430 \u0438\u0437\u043e\u0431\u0440\u0430\u0436\u0435\u043d\u0438\u044f JPG.\n!");
+		}
+	}
 
 	if (mTitleScreen)
 	{
@@ -1807,11 +1866,11 @@ void LawnApp::URLOpenFailed(const std::string& theURL)
 	CopyToClipboard(theURL);
 
 	std::string aString = 
-		"Please open the following URL in your browser\n\n" + 
+		GetString("OPEN_BROWSER_BODY", _S("Please open the following URL in your browser\n\n")) + 
 		theURL + 
-		"\n\nFor your convenience, this URL has already been copied to your clipboard.";
+		GetString("URL_COPIED_TO_CLIPBOARD", _S("\n\nFor your convenience, this URL has already been copied to your clipboard."));
 
-	DoDialog(Dialogs::DIALOG_OPENURL_WAIT, true, _S("Open Browser"), _S("OK"), StringToSexyStringFast(aString), Dialog::BUTTONS_FOOTER);
+	DoDialog(Dialogs::DIALOG_OPENURL_WAIT, true, GetString("OPEN_BROWSER", _S("Open Browser")), _S("[DIALOG_BUTTON_OK]"), StringToSexyStringFast(aString), Dialog::BUTTONS_FOOTER);
 }
 
 //0x452EE0
@@ -1827,8 +1886,8 @@ bool LawnApp::OpenURL(const std::string& theURL, bool shutdownOnOpen)
 	DoDialog(
 		Dialogs::DIALOG_OPENURL_WAIT, 
 		true, 
-		_S("Opening Browser"), 
-		_S("Opening Browser"), 
+		GetString("OPENING_BROWSER", _S("Opening Browser")), 
+		_S(""), 
 		_S(""), 
 		Dialog::BUTTONS_NONE
 	);
@@ -3064,7 +3123,7 @@ void LawnApp::DrawCrazyDave(Graphics* g)
 		TodDrawStringWrapped(g, aBubbleText, aRect, FONT_BRIANNETOD16, Color::Black, DrawStringJustification::DS_ALIGN_CENTER_VERTICAL_MIDDLE);
 		if (clickToContinue)
 		{
-			TodDrawString(g, _S("click to continue"), aPosX + 139, aPosY + 140, FONT_PICO129, Color::Black, DrawStringJustification::DS_ALIGN_CENTER);
+			TodDrawString(g, GetString("CLICK_TO_CONTINUE", _S("click to continue")), aPosX + 139, aPosY + 140, FONT_PICO129, Color::Black, DrawStringJustification::DS_ALIGN_CENTER);
 		}
 	}
 

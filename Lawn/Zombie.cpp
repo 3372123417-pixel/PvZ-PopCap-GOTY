@@ -3216,7 +3216,7 @@ void Zombie::UpdateZombiquarium()
             mVelZ = 0.0f;
         }
 
-        if (mPosX > 550.0f || aVelX > 0.0f)
+        if (mPosX > 550.0f && aVelX > 0.0f)
         {
             mVelZ = PI;
         }
@@ -3256,6 +3256,8 @@ void Zombie::UpdateZombiquarium()
             }
         }
     }
+
+    mRenderOrder = Board::MakeRenderOrder(RenderLayer::RENDER_LAYER_ZOMBIE, 0, (int)mPosY);
 }
 
 //0x5295F0

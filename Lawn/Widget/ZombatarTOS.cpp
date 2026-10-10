@@ -190,15 +190,8 @@ void ZombatarTOS::KeyDown(KeyCode theKey)
 	}
 }
 
-void ZombatarTOS::MouseWheel(int theDelta)
+void ZombatarTOS::MouseWheel([[maybe_unused]] int theDelta)
 {
-	if (mTextHeight <= TOS_CLIP_HEIGHT)
-		return;
-
-	int aMaxScroll = (std::max)(0, mTextHeight - TOS_CLIP_HEIGHT);
-	int aOffset = (int)(mTOSSlider->mVal * aMaxScroll);
-	aOffset -= theDelta * 12;
-	mTOSSlider->SetValue((std::max)(0.0, (std::min)(1.0, (double)aOffset / aMaxScroll)));
 }
 
 void ZombatarTOS::CheckboxChecked(int theId, bool checked)

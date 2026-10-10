@@ -2777,6 +2777,10 @@ Zombie* Board::AddZombieInRow(ZombieType theZombieType, int theRow, int theFromW
 	if (aZombie == nullptr)
 		return nullptr;
 	aZombie->ZombieInitialize(theRow, theZombieType, aVariant, nullptr, theFromWave);
+	if (theZombieType == ZombieType::ZOMBIE_FLAG && aZombie->IsOnBoard())
+	{
+		aZombie->SetupZombatarFlagReanim(0);
+	}
 	if (theZombieType == ZombieType::ZOMBIE_BOBSLED && aZombie->IsOnBoard())
 	{
 		for (int _i = 0; _i < 3; _i++)
@@ -3415,7 +3419,7 @@ void Board::UpdateToolTip()
 
 		SexyString aZombieName = StrFormat(_S("[%s]"), GetZombieDefinition(aZombie->mZombieType).mZombieName);
 		mToolTip->SetTitle(aZombieName);
-		if (mApp->CanShowAlmanac() && aZombie->mZombieType != ZombieType::ZOMBIE_GARGANTUAR)
+		if (mApp->CanShowAlmanac() && aZombie->mZombieType != ZombieType::ZOMBIE_REDEYE_GARGANTUAR)
 		{
 			mToolTip->SetLabel(_S("[CLICK_TO_VIEW]"));
 		}

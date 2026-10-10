@@ -515,11 +515,8 @@ void Music::MusicResync()
 //0x45B240
 void Music::StartBurst()
 { 
-	if (mMusicBurstState == MusicBurstState::MUSIC_BURST_OFF)
-	{ 
-		mMusicBurstState = MusicBurstState::MUSIC_BURST_STARTING;
-		mBurstStateCounter = 400;
-	}
+	mMusicBurstState = MusicBurstState::MUSIC_BURST_STARTING;
+	mBurstStateCounter = 400;
 }
 
 void Music::FadeOut(int theFadeOutDuration)

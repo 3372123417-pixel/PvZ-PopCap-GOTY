@@ -15,7 +15,9 @@ void TodErrorMessageBox(const char* theMessage, const char* theTitle)
 {
 	HWND hWnd = (gSexyAppBase && gSexyAppBase->mHWnd) ? gSexyAppBase->mHWnd : GetActiveWindow();
 	TodTraceAndLog("%s.%s", theMessage, theTitle);
-	MessageBoxA(hWnd, theMessage, theTitle, MB_ICONEXCLAMATION);
+	std::wstring aWMessage = Sexy::StringToWString(theMessage);
+	std::wstring aWTitle = Sexy::StringToWString(theTitle);
+	MessageBoxW(hWnd, aWMessage.c_str(), aWTitle.c_str(), MB_ICONEXCLAMATION);
 }
 
 void TodTraceMemory()

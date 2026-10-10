@@ -47,7 +47,7 @@ void StoreScreenOverlay::Draw(Graphics* g)
 }
 
 //0x489DA0
-StoreScreen::StoreScreen(LawnApp* theApp) : Dialog(nullptr, nullptr, DIALOG_STORE, true, _S("Store"), _S(""), _S(""), BUTTONS_NONE)
+StoreScreen::StoreScreen(LawnApp* theApp) : Dialog(nullptr, nullptr, DIALOG_STORE, true, theApp->GetString("STORE", _S("Store")), _S(""), _S(""), BUTTONS_NONE)
 {
 	mApp = theApp;
     mClip = false;
@@ -914,7 +914,7 @@ void StoreScreen::PurchaseItem(StoreItem theStoreItem)
     mApp->CrazyDaveStopTalking();
     if (!CanAffordItem(theStoreItem))
     {
-        Dialog* aDialog = mApp->DoDialog(DIALOG_NOT_ENOUGH_MONEY, true, _S("Not enough money"/*[NOT_ENOUGH_MONEY]*/), _S("You can't afford this item yet. Earn more coins by killing zombies!"/*[CANNOT_AFFORD_ITEM]*/), _S("[DIALOG_BUTTON_OK]"), BUTTONS_FOOTER);
+        Dialog* aDialog = mApp->DoDialog(DIALOG_NOT_ENOUGH_MONEY, true, mApp->GetString("NOT_ENOUGH_MONEY", _S("Not enough money")), mApp->GetString("CANNOT_AFFORD_ITEM", _S("You can't afford this item yet. Earn more coins by killing zombies!")), _S("[DIALOG_BUTTON_OK]"), BUTTONS_FOOTER);
         mWaitForDialog = true;
         aDialog->WaitForResult(true);
         mWaitForDialog = false;
@@ -924,8 +924,8 @@ void StoreScreen::PurchaseItem(StoreItem theStoreItem)
         LawnDialog* aComfirmDialog = (LawnDialog*)mApp->DoDialog(
             DIALOG_STORE_PURCHASE, 
             true, 
-            _S("Buy this item?"), 
-            _S("Are you sure you want to buy this item?"), 
+            mApp->GetString("BUY_ITEM_HEADER", _S("Buy this item?")), 
+            mApp->GetString("BUY_ITEM", _S("Are you sure you want to buy this item?")), 
             _S(""), 
             BUTTONS_YES_NO
         );
@@ -942,8 +942,8 @@ void StoreScreen::PurchaseItem(StoreItem theStoreItem)
             if (theStoreItem == STORE_ITEM_PACKET_UPGRADE)
             {
                 ++mApp->mPlayerInfo->mPurchases[theStoreItem];
-                SexyString aDialogLines = StrFormat(_S("Now you can choose to take %d seeds with you per level!"), 6 + mApp->mPlayerInfo->mPurchases[theStoreItem]);
-                Dialog* aDialog = mApp->DoDialog(DIALOG_UPGRADED, true, _S("More slots!"/*[MORE_SLOTS]*/), aDialogLines, _S("[DIALOG_BUTTON_OK]"), BUTTONS_FOOTER);
+                SexyString aDialogLines = StrFormat(mApp->GetString("NOW_YOU_CAN_CHOOSE_X_SEEDS", _S("Now you can choose to take %d seeds with you per level!")).c_str(), 6 + mApp->mPlayerInfo->mPurchases[theStoreItem]);
+                Dialog* aDialog = mApp->DoDialog(DIALOG_UPGRADED, true, mApp->GetString("MORE_SLOTS", _S("More slots!")), aDialogLines, _S("[DIALOG_BUTTON_OK]"), BUTTONS_FOOTER);
 
                 mWaitForDialog = true;
                 aDialog->WaitForResult(true);

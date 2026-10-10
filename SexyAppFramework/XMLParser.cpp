@@ -4,6 +4,34 @@
 
 using namespace Sexy;
 
+// Helper: Append a wchar_t as UTF-8 to a std::string (used when SexyString is std::string)
+static void AppendWCharToSexyString(SexyString& theString, wchar_t theChar)
+{
+	unsigned int c = (unsigned int)theChar;
+	if (c < 0x80)
+	{
+		theString += (char)c;
+	}
+	else if (c < 0x800)
+	{
+		theString += (char)(0xC0 | (c >> 6));
+		theString += (char)(0x80 | (c & 0x3F));
+	}
+	else if (c < 0x10000)
+	{
+		theString += (char)(0xE0 | (c >> 12));
+		theString += (char)(0x80 | ((c >> 6) & 0x3F));
+		theString += (char)(0x80 | (c & 0x3F));
+	}
+	else if (c < 0x110000)
+	{
+		theString += (char)(0xF0 | (c >> 18));
+		theString += (char)(0x80 | ((c >> 12) & 0x3F));
+		theString += (char)(0x80 | ((c >> 6) & 0x3F));
+		theString += (char)(0x80 | (c & 0x3F));
+	}
+}
+
 XMLParser::XMLParser()
 {
 	mFile = NULL;
@@ -250,7 +278,7 @@ bool XMLParser::GetUTF16BEChar(wchar_t* theChar, bool* error)
 
 bool XMLParser::OpenFile(const std::string& theFileName)
 {		
-	mFile = p_fopen(theFileName.c_str(), "r");
+	mFile = p_fopen(theFileName.c_str(), "rb");
 
 	if (mFile == NULL)
 	{
@@ -276,9 +304,9 @@ bool XMLParser::OpenFile(const std::string& theFileName)
 			p_ungetc(aChar2, mFile);
 			p_ungetc(aChar1, mFile);			
 		}
-		if (mGetCharFunc = &XMLParser::GetAsciiChar)
+		if (mGetCharFunc == &XMLParser::GetAsciiChar)
 		{
-			if (aFileLen >= 3) // UTF-8?
+			if (aFileLen >= 3) // UTF-8 BOM?
 			{
 				int aChar1 = p_fgetc(mFile);
 				int aChar2 = p_fgetc(mFile);
@@ -290,6 +318,18 @@ bool XMLParser::OpenFile(const std::string& theFileName)
 				p_ungetc(aChar3, mFile);
 				p_ungetc(aChar2, mFile);
 				p_ungetc(aChar1, mFile);			
+			}
+			// If no BOM detected, try to detect UTF-8 by reading file content
+			if (mGetCharFunc == &XMLParser::GetAsciiChar && aFileLen > 0)
+			{
+				char* aBuffer = new char[aFileLen];
+				size_t aReadLen = p_fread(aBuffer, 1, aFileLen, mFile);
+				p_fseek(mFile, 0, SEEK_SET);
+
+				if (aReadLen > 0 && Sexy::IsValidUTF8(aBuffer, (int)aReadLen))
+					mGetCharFunc = &XMLParser::GetUTF8Char;
+
+				delete[] aBuffer;
 			}
 		}
 	}
@@ -385,8 +425,8 @@ bool XMLParser::NextElement(XMLElement* theElement)
 					// Just add text to theElement->mInstruction until we find -->
 
 					SexyString* aStrPtr = &theElement->mInstruction;
-					
-					*aStrPtr += (SexyChar)c;					
+
+					AppendWCharToSexyString(*aStrPtr, c);
 
 					int aLen = aStrPtr->length();
 
@@ -404,8 +444,8 @@ bool XMLParser::NextElement(XMLElement* theElement)
 
 					if ((theElement->mInstruction.length() != 0) || (::iswspace(c)))
 						aStrPtr = &theElement->mInstruction;
-					
-					*aStrPtr += (SexyChar)c;					
+
+					AppendWCharToSexyString(*aStrPtr, c);
 
 					int aLen = aStrPtr->length();
 
@@ -638,7 +678,7 @@ bool XMLParser::NextElement(XMLElement* theElement)
 
 							if (!doingAttribute)
 							{
-								theElement->mValue += (SexyChar)c;
+								AppendWCharToSexyString(theElement->mValue, c);
 							}
 							else
 							{
@@ -657,8 +697,8 @@ bool XMLParser::NextElement(XMLElement* theElement)
 							}
 
 							if (aStrPtr != NULL)
-							{								
-								*aStrPtr += c;						
+							{
+								*aStrPtr += c;
 							}
 						}
 						else
@@ -668,8 +708,8 @@ bool XMLParser::NextElement(XMLElement* theElement)
 								theElement->mValue += _S(" ");
 								hasSpace = false;
 							}
-							
-							theElement->mValue += (SexyChar)c;
+
+							AppendWCharToSexyString(theElement->mValue, c);
 						}
 					}
 				}

@@ -412,8 +412,8 @@ bool ZombatarWidget::CanSaveNewHead() const
 
 void ZombatarWidget::ShowMaxHeadsMessage()
 {
-	mApp->LawnMessageBox(DIALOG_MESSAGE, _S("Zombatar Limit Reached"),
-		_S("This profile already has the maximum number of saved Zombatars."),
+	mApp->LawnMessageBox(DIALOG_MESSAGE, mApp->GetString("ZOMBATAR_LIMIT_REACHED", _S("Zombatar Limit Reached")).c_str(),
+		mApp->GetString("ZOMBATAR_MAX_HEADS_MESSAGE", _S("This profile already has the maximum number of saved Zombatars.")).c_str(),
 		_S("[DIALOG_BUTTON_OK]"), _S(""), Dialog::BUTTONS_FOOTER);
 }
 
@@ -510,9 +510,20 @@ bool ZombatarWidget::SaveDraft()
 	aPlayerInfo->mZombatarHeadCount = (uint32_t)GetHeadCount();
 	mCurrentIndex = (int)(aOffset / ZOMBATAR_RECORD_SIZE);
 
+	bool aFirstExport = (aPlayerInfo->mZombatarCreatedBefore == 0);
 	aPlayerInfo->mZombatarCreatedBefore = 1;
 	aPlayerInfo->SaveDetails();
 	ExportAvatarImage();
+	if (aFirstExport)
+	{
+		mApp->LawnMessageBox(
+			DIALOG_ZOMBATAR_EXPORT,
+			_S(""),
+			mApp->GetString("ZOMBATAR_SAVED_TO_DESKTOP", _S("Your Zombatar has been saved to your desktop as a jpg image file.\n!")).c_str(),
+			_S("[DIALOG_BUTTON_OK]"),
+			_S(""),
+			Dialog::BUTTONS_FOOTER);
+	}
 	ResetDraft();
 	mPage = ZOMBATAR_PAGE_SKIN;
 	mSubPage = 0;
@@ -1163,6 +1174,9 @@ void ZombatarWidget::UpdateButtonState()
 	mNextPageButton->mDisabled = mSubPage >= mMaxSubPages;
 	mFinishedButton->mDisabled = aCreate && !CanSaveNewHead();
 
+	mPrevPageButton->SetColor(ButtonWidget::COLOR_BKG, mPrevPageButton->mDisabled ? ZOMBATAR_PAGE_BTN_DISABLED_TINT : Color::White);
+	mNextPageButton->SetColor(ButtonWidget::COLOR_BKG, mNextPageButton->mDisabled ? ZOMBATAR_PAGE_BTN_DISABLED_TINT : Color::White);
+
 	if (aConfirm)
 		mFinishedButton->Resize(ZOMBATAR_ACCEPT_X, ZOMBATAR_CONFIRM_BTN_Y, 103, 26);
 	else if (aCreate)
@@ -1235,7 +1249,7 @@ void ZombatarWidget::DrawList(Graphics* g)
 
 	g->SetFont(FONT_DWARVENTODCRAFT12);
 	g->SetColor(mDeleteHover ? Color(22, 253, 5) : Color(255, 255, 255));
-	g->DrawString(_S("Delete?"), ZOMBATAR_LIST_DELETE_X, ZOMBATAR_LIST_DELETE_Y);
+	g->DrawString(mApp->GetString("ZOMBATAR_DELETE_BUTTON", _S("Delete?")), ZOMBATAR_LIST_DELETE_X, ZOMBATAR_LIST_DELETE_Y);
 	g->SetColor(Color::White);
 }
 

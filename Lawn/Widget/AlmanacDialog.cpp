@@ -17,7 +17,7 @@
 bool gZombieDefeated[NUM_ZOMBIE_TYPES] = { false };
 
 //0x401010
-AlmanacDialog::AlmanacDialog(LawnApp* theApp) : LawnDialog(theApp, DIALOG_ALMANAC, true, _S("Almanac"), _S(""), _S(""), BUTTONS_NONE)
+AlmanacDialog::AlmanacDialog(LawnApp* theApp) : LawnDialog(theApp, DIALOG_ALMANAC, true, theApp->GetString("ALMANAC_HEADER", _S("Almanac")), _S(""), _S(""), BUTTONS_NONE)
 {
 	mApp = (LawnApp*)gSexyAppBase;
 	mOpenPage = ALMANAC_PAGE_INDEX;
