@@ -107,34 +107,34 @@ void Music::SetupMusicFileForTune(MusicFile theMusicFile, MusicTune theMusicTune
 	{
 	case MusicTune::MUSIC_TUNE_DAY_GRASSWALK:
 		switch (theMusicFile) {
-		case MusicFile::MUSIC_FILE_MAIN_MUSIC:		aTrackCount = 30;	aTrackStart1 = 0;	aTrackEnd1 = 23;											break;
-		case MusicFile::MUSIC_FILE_HIHATS:			aTrackCount = 30;	aTrackStart1 = 27;	aTrackEnd1 = 27;											break;
-		case MusicFile::MUSIC_FILE_DRUMS:			aTrackCount = 30;	aTrackStart1 = 24;	aTrackEnd1 = 26;											break;
+		case MusicFile::MUSIC_FILE_MAIN_MUSIC:		aTrackCount = 29;	aTrackStart1 = 0;	aTrackEnd1 = 23;											break;
+		case MusicFile::MUSIC_FILE_HIHATS:			aTrackCount = 29;	aTrackStart1 = 27;	aTrackEnd1 = 27;											break;
+		case MusicFile::MUSIC_FILE_DRUMS:			aTrackCount = 29;	aTrackStart1 = 24;	aTrackEnd1 = 26;											break;
 		} break;
 	case MusicTune::MUSIC_TUNE_POOL_WATERYGRAVES:
 		switch (theMusicFile) {
-		case MusicFile::MUSIC_FILE_MAIN_MUSIC:		aTrackCount = 30;	aTrackStart1 = 0;	aTrackEnd1 = 17;											break;
+		case MusicFile::MUSIC_FILE_MAIN_MUSIC:		aTrackCount = 30;	aTrackStart1 = 0;	aTrackEnd1 = 17;														break;
 		case MusicFile::MUSIC_FILE_HIHATS:			aTrackCount = 30;	aTrackStart1 = 18;	aTrackEnd1 = 24;	aTrackStart2 = 29;	aTrackEnd2 = 29;	break;
-		case MusicFile::MUSIC_FILE_DRUMS:			aTrackCount = 30;	aTrackStart1 = 25;	aTrackEnd1 = 28;											break;
+		case MusicFile::MUSIC_FILE_DRUMS:			aTrackCount = 30;	aTrackStart1 = 25;	aTrackEnd1 = 28;														break;
 		} break;
 	case MusicTune::MUSIC_TUNE_FOG_RIGORMORMIST:
 		switch (theMusicFile) {
-		case MusicFile::MUSIC_FILE_MAIN_MUSIC:		aTrackCount = 30;	aTrackStart1 = 0;	aTrackEnd1 = 15;											break;
-		case MusicFile::MUSIC_FILE_HIHATS:			aTrackCount = 30;	aTrackStart1 = 23;	aTrackEnd1 = 23;											break;
-		case MusicFile::MUSIC_FILE_DRUMS:			aTrackCount = 30;	aTrackStart1 = 16;	aTrackEnd1 = 22;											break;
+		case MusicFile::MUSIC_FILE_MAIN_MUSIC:		aTrackCount = 29;	aTrackStart1 = 0;	aTrackEnd1 = 15;											break;
+		case MusicFile::MUSIC_FILE_HIHATS:			aTrackCount = 29;	aTrackStart1 = 23;	aTrackEnd1 = 23;											break;
+		case MusicFile::MUSIC_FILE_DRUMS:			aTrackCount = 29;	aTrackStart1 = 16;	aTrackEnd1 = 22;											break;
 		} break;
 	case MusicTune::MUSIC_TUNE_ROOF_GRAZETHEROOF:
 		switch (theMusicFile) {
-		case MusicFile::MUSIC_FILE_MAIN_MUSIC:		aTrackCount = 30;	aTrackStart1 = 0;	aTrackEnd1 = 17;											break;
-		case MusicFile::MUSIC_FILE_HIHATS:			aTrackCount = 30;	aTrackStart1 = 21;	aTrackEnd1 = 21;											break;
-		case MusicFile::MUSIC_FILE_DRUMS:			aTrackCount = 30;	aTrackStart1 = 18;	aTrackEnd1 = 20;											break;
+		case MusicFile::MUSIC_FILE_MAIN_MUSIC:		aTrackCount = 29;	aTrackStart1 = 0;	aTrackEnd1 = 17;											break;
+		case MusicFile::MUSIC_FILE_HIHATS:			aTrackCount = 29;	aTrackStart1 = 21;	aTrackEnd1 = 21;											break;
+		case MusicFile::MUSIC_FILE_DRUMS:			aTrackCount = 29;	aTrackStart1 = 18;	aTrackEnd1 = 20;											break;
 		} break;
 	default:
 		if (theMusicFile == MusicFile::MUSIC_FILE_MAIN_MUSIC || theMusicFile == MusicFile::MUSIC_FILE_DRUMS)
 		{
 			aTrackCount = 30;
 			aTrackStart1 = 0;
-			aTrackEnd1 = 29;
+			aTrackEnd1 = 30;
 		}
 		break;
 	}
@@ -151,62 +151,6 @@ void Music::SetupMusicFileForTune(MusicFile theMusicFile, MusicTune theMusicTune
 			aVolume = 0;
 
 		gBass->BASS_MusicSetAttribute(aHMusic, BASS_MUSIC_ATTRIB_VOL_CHAN + aTrack, aVolume);  // 设置音乐每条轨道的音量属性（静音与否）
-	}
-}
-
-void Music::SetupVolumeForTune(MusicTune theMusicTune, float theDrumsVolume, float theHihatsVolume)
-{
-	int aMainEnd = 29;
-	int aDrumsStart = -1, aDrumsEnd = -1;
-	int aHihatsStart1 = -1, aHihatsEnd1 = -1, aHihatsStart2 = -1, aHihatsEnd2 = -1;
-
-	switch (theMusicTune)
-	{
-	case MusicTune::MUSIC_TUNE_DAY_GRASSWALK:
-		aMainEnd = 23;
-		aDrumsStart = 24;	aDrumsEnd = 26;
-		aHihatsStart1 = 27;	aHihatsEnd1 = 27;
-		break;
-	case MusicTune::MUSIC_TUNE_POOL_WATERYGRAVES:
-		aMainEnd = 17;
-		aDrumsStart = 18;	aDrumsEnd = 28;
-		aHihatsStart1 = 18;	aHihatsEnd1 = 24;	aHihatsStart2 = 29;	aHihatsEnd2 = 29;
-		break;
-	case MusicTune::MUSIC_TUNE_FOG_RIGORMORMIST:
-		aMainEnd = 15;
-		aDrumsStart = 16;	aDrumsEnd = 22;
-		aHihatsStart1 = 23;	aHihatsEnd1 = 23;
-		break;
-	case MusicTune::MUSIC_TUNE_ROOF_GRAZETHEROOF:
-		aMainEnd = 17;
-		aDrumsStart = 18;	aDrumsEnd = 20;
-		aHihatsStart1 = 21;	aHihatsEnd1 = 21;
-		break;
-	default:
-		break;
-	}
-
-	HMUSIC aHMusic = GetBassMusicHandle(MusicFile::MUSIC_FILE_MAIN_MUSIC);
-	for (int aTrack = 0; aTrack < 30; aTrack++)
-	{
-		float aVolume;
-		if (aTrack <= aMainEnd)
-			aVolume = 1.0f;
-		else
-		{
-			bool isDrums = (aTrack >= aDrumsStart && aTrack <= aDrumsEnd);
-			bool isHihats = (aTrack >= aHihatsStart1 && aTrack <= aHihatsEnd1) ||
-							(aTrack >= aHihatsStart2 && aTrack <= aHihatsEnd2);
-			if (isDrums && isHihats)
-				aVolume = (theDrumsVolume > theHihatsVolume) ? theDrumsVolume : theHihatsVolume;
-			else if (isDrums)
-				aVolume = theDrumsVolume;
-			else if (isHihats)
-				aVolume = theHihatsVolume;
-			else
-				aVolume = 0.0f;
-		}
-		gBass->BASS_MusicSetAttribute(aHMusic, BASS_MUSIC_ATTRIB_VOL_CHAN + aTrack, (int)(aVolume * 100.0f));
 	}
 }
 
@@ -315,8 +259,6 @@ void Music::PlayFromOffset(MusicFile theMusicFile, int theOffset, double theVolu
 	{
 		gBass->BASS_ChannelStop(aMusicInfo->mHMusic);  // 先停止正在播放的音乐
 		SetupMusicFileForTune(theMusicFile, mCurMusicTune);  // 调整每条轨道的静音与否
-		if (theMusicFile == MusicFile::MUSIC_FILE_MAIN_MUSIC && mCurMusicTune != MusicTune::MUSIC_TUNE_CREDITS_ZOMBIES_ON_YOUR_LAWN)
-			SetupVolumeForTune(mCurMusicTune, 0.0f, 0.0f);
 		aMusicInfo->mStopOnFade = false;
 		aMusicInfo->mVolume = aMusicInfo->mVolumeCap * theVolume;
 		aMusicInfo->mVolumeAdd = 0.0;
@@ -343,9 +285,13 @@ void Music::PlayMusic(MusicTune theMusicTune, int theOffset, int theDrumsOffset)
 	{
 	case MusicTune::MUSIC_TUNE_DAY_GRASSWALK:
 		mCurMusicFileMain = MusicFile::MUSIC_FILE_MAIN_MUSIC;
+		mCurMusicFileDrums = MusicFile::MUSIC_FILE_DRUMS;
+		mCurMusicFileHihats = MusicFile::MUSIC_FILE_HIHATS;
 		if (theOffset == -1)
 			theOffset = 0;
 		PlayFromOffset(mCurMusicFileMain, theOffset, 1.0);
+		PlayFromOffset(mCurMusicFileDrums, theOffset, 0.0);
+		PlayFromOffset(mCurMusicFileHihats, theOffset, 0.0);
 		break;
 
 	case MusicTune::MUSIC_TUNE_NIGHT_MOONGRAINS:
@@ -362,23 +308,35 @@ void Music::PlayMusic(MusicTune theMusicTune, int theOffset, int theDrumsOffset)
 
 	case MusicTune::MUSIC_TUNE_POOL_WATERYGRAVES:
 		mCurMusicFileMain = MusicFile::MUSIC_FILE_MAIN_MUSIC;
+		mCurMusicFileDrums = MusicFile::MUSIC_FILE_DRUMS;
+		mCurMusicFileHihats = MusicFile::MUSIC_FILE_HIHATS;
 		if (theOffset == -1)
 			theOffset = 0x8000005E;
 		PlayFromOffset(mCurMusicFileMain, theOffset, 1.0);
+		PlayFromOffset(mCurMusicFileDrums, theOffset, 0.0);
+		PlayFromOffset(mCurMusicFileHihats, theOffset, 0.0);
 		break;
 
 	case MusicTune::MUSIC_TUNE_FOG_RIGORMORMIST:
 		mCurMusicFileMain = MusicFile::MUSIC_FILE_MAIN_MUSIC;
+		mCurMusicFileDrums = MusicFile::MUSIC_FILE_DRUMS;
+		mCurMusicFileHihats = MusicFile::MUSIC_FILE_HIHATS;
 		if (theOffset == -1)
 			theOffset = 0x8000007D;
 		PlayFromOffset(mCurMusicFileMain, theOffset, 1.0);
+		PlayFromOffset(mCurMusicFileDrums, theOffset, 0.0);
+		PlayFromOffset(mCurMusicFileHihats, theOffset, 0.0);
 		break;
 
 	case MusicTune::MUSIC_TUNE_ROOF_GRAZETHEROOF:
 		mCurMusicFileMain = MusicFile::MUSIC_FILE_MAIN_MUSIC;
+		mCurMusicFileDrums = MusicFile::MUSIC_FILE_DRUMS;
+		mCurMusicFileHihats = MusicFile::MUSIC_FILE_HIHATS;
 		if (theOffset == -1)
 			theOffset = 0x800000B8;
 		PlayFromOffset(mCurMusicFileMain, theOffset, 1.0);
+		PlayFromOffset(mCurMusicFileDrums, theOffset, 0.0);
+		PlayFromOffset(mCurMusicFileHihats, theOffset, 0.0);
 		break;
 
 	case MusicTune::MUSIC_TUNE_CHOOSE_YOUR_SEEDS:
@@ -495,7 +453,7 @@ void Music::MusicResyncChannel(MusicFile theMusicFileToMatch, MusicFile theMusic
 		else if (aDiff < -2)
 			aBPM += 2;
 		else if (aDiff < 0)
-			aBPM -= 1;
+			aBPM += 1;
 
 		gBass->BASS_MusicSetAttribute(aHMusic, BASS_MUSIC_ATTRIB_BPM, aBPM);  // 适当调整待同步音乐的速率以缩小差距
 	}
@@ -515,8 +473,11 @@ void Music::MusicResync()
 //0x45B240
 void Music::StartBurst()
 { 
-	mMusicBurstState = MusicBurstState::MUSIC_BURST_STARTING;
-	mBurstStateCounter = 400;
+	if (mMusicBurstState == MusicBurstState::MUSIC_BURST_OFF)
+	{ 
+		mMusicBurstState = MusicBurstState::MUSIC_BURST_STARTING;
+		mBurstStateCounter = 400;
+	}
 }
 
 void Music::FadeOut(int theFadeOutDuration)
@@ -533,6 +494,7 @@ void Music::UpdateMusicBurst()
 {
 	if (mApp->mBoard == nullptr)
 		return;
+
 	if (mApp->mGameMode == GameMode::GAMEMODE_INTRO)
 		return;
 
@@ -632,13 +594,17 @@ void Music::UpdateMusicBurst()
 	int aOrderMain = 0, aOrderDrum = 0;
 	if (aBurstScheme == 1)
 	{
-		aOrderMain = aPackedOrderMain & 0xFFFF;
-		aOrderDrum = mQueuedDrumTrackPackedOrder & 0xFFFF;
+		aOrderMain = HIWORD(aPackedOrderMain) / 128;
+		aOrderDrum = HIWORD(mQueuedDrumTrackPackedOrder) / 128;
 	}
 	else if (aBurstScheme == 2)
 	{
-		aOrderMain = aPackedOrderMain & 0xFFFF;
-		aOrderDrum = mQueuedDrumTrackPackedOrder & 0xFFFF;
+		aOrderMain = LOWORD(aPackedOrderMain);
+		aOrderDrum = LOWORD(mQueuedDrumTrackPackedOrder);
+		if (HIWORD(aPackedOrderMain) > 252)
+			aOrderMain++;
+		if (HIWORD(mQueuedDrumTrackPackedOrder) > 252)
+			aOrderDrum++;
 	}
 
 	switch (mMusicDrumsState)
@@ -675,7 +641,8 @@ void Music::UpdateMusicBurst()
 
 	if (aBurstScheme == 1)
 	{
-		SetupVolumeForTune(mCurMusicTune, aDrumsVolume, aFadeTrackVolume);
+		mMusicInterface->SetSongVolume(mCurMusicFileHihats, aFadeTrackVolume);
+		mMusicInterface->SetSongVolume(mCurMusicFileDrums, aDrumsVolume);
 	}
 	else if (aBurstScheme == 2)
 	{
@@ -772,7 +739,13 @@ void Music::GameMusicPause(bool thePause)
 				mPauseOffset = MAKELONG(LOWORD(aOrderMain), HIWORD(aOrderMain) / 4);
 				mMusicInterface->StopMusic(mCurMusicFileMain);
 
-				if (mCurMusicTune == MusicTune::MUSIC_TUNE_NIGHT_MOONGRAINS)
+				if (mCurMusicTune == MusicTune::MUSIC_TUNE_DAY_GRASSWALK || mCurMusicTune == MusicTune::MUSIC_TUNE_POOL_WATERYGRAVES ||
+					mCurMusicTune == MusicTune::MUSIC_TUNE_FOG_RIGORMORMIST || mCurMusicTune == MusicTune::MUSIC_TUNE_ROOF_GRAZETHEROOF)
+				{
+					mMusicInterface->StopMusic(mCurMusicFileDrums);
+					mMusicInterface->StopMusic(mCurMusicFileHihats);
+				}
+				else if (mCurMusicTune == MusicTune::MUSIC_TUNE_NIGHT_MOONGRAINS)
 				{
 					int aOrderDrum = GetMusicOrder(mCurMusicFileDrums);
 					mPauseOffsetDrums = MAKELONG(LOWORD(aOrderDrum), HIWORD(aOrderDrum) / 4);
