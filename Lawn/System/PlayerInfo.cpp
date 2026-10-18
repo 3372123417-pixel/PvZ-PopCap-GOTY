@@ -171,7 +171,7 @@ void PlayerInfo::LoadZombatar()
 
 void PlayerInfo::SaveZombatar()
 {
-	if (mZombatarData.empty() && mZombatarHeadCount == 0)
+	if (mZombatarData.empty() && mZombatarHeadCount == 0 && mZombatarCreatedBefore == 0 && mZombatarAccepted == 0)
 		return;
 
 	DataWriter aWriter;

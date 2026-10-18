@@ -373,7 +373,7 @@ void NewOptionsDialog::ButtonDepress(int theId)
             }
 
             LawnDialog* aDialog = (LawnDialog*)mApp->DoDialog(Dialogs::DIALOG_CONFIRM_RESTART, true, aDialogTitle, aDialogMessage, _S(""), Dialog::BUTTONS_YES_NO);
-            aDialog->mLawnYesButton->mLabel = mApp->GetString("RESTART_LABEL", TodStringTranslate(_S("[RESTART_LABEL]")));
+            aDialog->mLawnYesButton->mLabel = TodStringTranslate(_S("[RESTART_BUTTON]"));
             aDialog->mLawnNoButton->mLabel = TodStringTranslate(_S("[DIALOG_BUTTON_CANCEL]"));
             
             if (aDialog->WaitForResult(true) == Dialog::ID_YES)

@@ -252,10 +252,11 @@ bool CharIsSpaceInFormat(char theChar, const TodStringListFormat& theCurrentForm
 int TodWriteString(Graphics* g, const SexyString& theString, int theX, int theY, TodStringListFormat& theCurrentFormat, int theWidth, DrawStringJustification theJustification, bool drawString, int theOffset, int theLength)
 {
 	Font* aFont = *theCurrentFormat.mNewFont;
-	if (drawString)  // 如果需要实际绘制
+	if (drawString)
 	{
-		int aSpareX = theWidth - TodWriteString(g, theString, theX, theY, theCurrentFormat, theWidth, DrawStringJustification::DS_ALIGN_LEFT, false, theOffset, theLength);
-		switch (theJustification)  // 根据对齐方式调整实际绘制的横坐标
+		TodStringListFormat aMeasureFormat = theCurrentFormat;
+		int aSpareX = theWidth - TodWriteString(g, theString, theX, theY, aMeasureFormat, theWidth, DrawStringJustification::DS_ALIGN_LEFT, false, theOffset, theLength);
+		switch (theJustification)
 		{
 		case DrawStringJustification::DS_ALIGN_RIGHT:
 		case DrawStringJustification::DS_ALIGN_RIGHT_VERTICAL_MIDDLE:

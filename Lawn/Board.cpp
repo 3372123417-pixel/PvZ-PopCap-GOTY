@@ -3063,14 +3063,10 @@ PlantingReason Board::CanPlantAt(int theGridX, int theGridY, SeedType theSeedTyp
 		return PlantingReason::PLANTING_NOT_HERE;
 	}
 
-	// 免费种植模式下紫卡的额外判断
-	if (!mApp->mEasyPlantingCheat && Plant::IsUpgrade(theSeedType))
-	{
-		return PlantingReason::PLANTING_NEEDS_UPGRADE;
-	}
+	// 紫卡植物现在可以直接种植，原版升级限制已移除
 	if (theSeedType == SeedType::SEED_COBCANNON && !IsValidCobCannonSpot(theGridX, theGridY))
 	{
-		return PlantingReason::PLANTING_NEEDS_UPGRADE;
+		return PlantingReason::PLANTING_OK;
 	}
 	else if (theSeedType == SeedType::SEED_CATTAIL && aGridSquare != GridSquareType::GRIDSQUARE_POOL)
 	{

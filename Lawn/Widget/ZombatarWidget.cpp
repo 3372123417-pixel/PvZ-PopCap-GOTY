@@ -1089,6 +1089,12 @@ void ZombatarWidget::CreatePreviewZombie()
 	mPreviewZombie->mPosY = 0.0f;
 	mPreviewZombie->mX = 0;
 	mPreviewZombie->mY = 0;
+
+	unsigned char aRecord[ZOMBATAR_RECORD_SIZE];
+	memset(aRecord, 0, ZOMBATAR_RECORD_SIZE);
+	aRecord[ZOMBATAR_SLOT_SKIN_PART * 4] = 0;
+	aRecord[ZOMBATAR_SLOT_SKIN_COLOR * 4] = 0;
+	mPreviewZombie->ApplyZombatarHead(aRecord);
 }
 
 void ZombatarWidget::DestroyPreviewZombie()
@@ -1096,6 +1102,7 @@ void ZombatarWidget::DestroyPreviewZombie()
 	if (!mPreviewZombie)
 		return;
 
+	mPreviewZombie->DieNoLoot();
 	delete mPreviewZombie;
 	mPreviewZombie = nullptr;
 }

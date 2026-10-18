@@ -2403,7 +2403,14 @@ int LawnApp::GetSeedsAvailable()
 	}
 
 	SeedType aSeedTypeMax = GetAwardSeedForLevel(aLevel);
-	return min(49, aSeedTypeMax);
+	return min(49, (int)aSeedTypeMax);
+}
+
+SeedType LawnApp::GetRandomAvailableSeed()
+{
+	int aSeedsEarned = GetSeedsAvailable();
+	if (aSeedsEarned <= 0) return SEED_NONE;
+	return (SeedType)Rand(aSeedsEarned);
 }
 
 //0x453B20

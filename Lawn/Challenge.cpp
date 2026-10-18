@@ -1906,7 +1906,7 @@ void Challenge::UpdateRainingSeeds()
 
 	SeedType aSeedType;
 	do
-		aSeedType = (SeedType)Rand(mApp->GetSeedsAvailable());
+		aSeedType = mApp->GetRandomAvailableSeed();
 	while (
 		mBoard->SeedNotRecommendedForLevel(aSeedType) || 
 		!mApp->HasSeedType(aSeedType) || 

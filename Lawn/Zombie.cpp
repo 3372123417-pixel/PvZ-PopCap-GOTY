@@ -3412,8 +3412,6 @@ void Zombie::ApplyZombatarHead(const unsigned char* theRecord)
 		return;
 
 	ReanimatorTrackInstance* aTrackInstance = aBodyReanim->GetTrackInstanceByName("anim_head1");
-	if (!aTrackInstance)
-		return;
 	aTrackInstance->mImageOverride = IMAGE_BLANK;
 	aBodyReanim->AssignRenderGroupToTrack("anim_head1", RENDER_GROUP_ZOMBATAR_HEAD);
 	aBodyReanim->AssignRenderGroupToPrefix("anim_head2", RENDER_GROUP_HIDDEN);
@@ -7489,6 +7487,7 @@ void Zombie::DieNoLoot()
     mApp->RemoveReanimation(mBodyReanimID);
     mApp->RemoveReanimation(mMoweredReanimID);
     mApp->RemoveReanimation(mSpecialHeadReanimID);
+    mApp->RemoveReanimation(mZombatarHeadReanimID);
 
     mDead = true;
     TrySpawnLevelAward();

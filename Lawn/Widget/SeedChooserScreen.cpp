@@ -595,7 +595,7 @@ bool SeedChooserScreen::FlyProtectionCurrentlyPlanted()
 //0x485420
 bool SeedChooserScreen::CheckSeedUpgrade(SeedType theSeedTypeTo, SeedType theSeedTypeFrom)
 {
-	if (mApp->IsSurvivalMode() || !PickedPlantType(theSeedTypeTo) || PickedPlantType(theSeedTypeFrom))
+	if (!PickedPlantType(theSeedTypeTo) || PickedPlantType(theSeedTypeFrom) || mBoard->mCutScene->IsSurvivalRepick())
 		return true;
 
 	SexyString aWarning = TodStringTranslate(_S("[SEED_CHOOSER_UPGRADE_WARNING]"));
@@ -702,7 +702,7 @@ void SeedChooserScreen::PickRandomSeeds()
 	for (int anIndex = mSeedsInBank; anIndex < mBoard->mSeedBank->mNumPackets; anIndex++)
 	{
 		SeedType aSeedType;
-		do aSeedType = (SeedType)Rand(mApp->GetSeedsAvailable());
+		do aSeedType = mApp->GetRandomAvailableSeed();
 		while (!mApp->HasSeedType(aSeedType) || aSeedType == SEED_IMITATER || mChosenSeeds[aSeedType].mSeedState != SEED_IN_CHOOSER);
 		ChosenSeed& aChosenSeed = mChosenSeeds[aSeedType];
 		aChosenSeed.mTimeStartMotion = 0;

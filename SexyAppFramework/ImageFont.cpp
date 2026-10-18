@@ -1432,7 +1432,10 @@ while (aCharItr != aFontLayer->mExtendedCharDataMap.end())
 		}
 
 		++anItr;
-	}	
+	}
+
+	if (mLineSpacingOffset >= 0)
+		mLineSpacingOffset -= 2;
 }
 
 int ImageFont::StringWidth(const SexyString& theString)
@@ -1443,18 +1446,8 @@ int ImageFont::StringWidth(const SexyString& theString)
 	unsigned int aChar = 0;
 	while (UTF8DecodeNext(theString, aOffset, aChar))
 	{
-		unsigned int aMappedChar = aChar;
-		if (aChar <= 0xFF)
-			aMappedChar = mFontData->mCharMap[(uchar)aChar];
-		else
-		{
-			std::map<unsigned int, unsigned int>::iterator anItr = mFontData->mExtendedCharMap.find(aChar);
-			if (anItr != mFontData->mExtendedCharMap.end())
-				aMappedChar = anItr->second;
-		}
-
-		aWidth += CharWidthKernUInt(aMappedChar, aPrevChar);
-		aPrevChar = aMappedChar;
+		aWidth += CharWidthKernUInt(aChar, aPrevChar);
+		aPrevChar = aChar;
 	}
 
 	return aWidth;
@@ -1466,6 +1459,10 @@ int ImageFont::CharWidthKernUInt(unsigned int theChar, unsigned int thePrevChar)
 
 	int aMaxXPos = 0;
 	double aPointSize = mPointSize * mScale;
+
+	theChar = GetMappedChar(theChar);
+	if (thePrevChar != 0)
+		thePrevChar = GetMappedChar(thePrevChar);
 
 	ActiveFontLayerList::iterator anItr = mActiveLayerList.begin();
 	while (anItr != mActiveLayerList.end())
@@ -1479,19 +1476,31 @@ int ImageFont::CharWidthKernUInt(unsigned int theChar, unsigned int thePrevChar)
 
 		int aLayerPointSize = anActiveFontLayer->mBaseFontLayer->mPointSize;
 
-		int aKern = 0;
-		if (thePrevChar != 0 && thePrevChar <= 0xFF && theChar <= 0xFF)
-			aKern = anActiveFontLayer->mBaseFontLayer->GetCharData(thePrevChar)->mKerningOffsets[(uchar)theChar];
-
 		if (aLayerPointSize == 0)
 		{
 			aCharWidth = anActiveFontLayer->mBaseFontLayer->GetCharData(theChar)->mWidth * mScale;
-			aSpacing = (int)((anActiveFontLayer->mBaseFontLayer->mSpacing + aKern) * mScale);
+
+			if (thePrevChar != 0)
+			{
+				CharData* aPrevCharData = anActiveFontLayer->mBaseFontLayer->GetCharData(thePrevChar);
+				aSpacing = (anActiveFontLayer->mBaseFontLayer->mSpacing +
+					(theChar < 0x100 ? aPrevCharData->mKerningOffsets[(uchar)theChar] : 0)) * mScale;
+			}
+			else
+				aSpacing = 0;
 		}
 		else
 		{
-			aCharWidth = (int)(anActiveFontLayer->mBaseFontLayer->GetCharData(theChar)->mWidth * aPointSize / aLayerPointSize);
-			aSpacing = (anActiveFontLayer->mBaseFontLayer->mSpacing + aKern) * aPointSize / aLayerPointSize;
+			aCharWidth = (anActiveFontLayer->mBaseFontLayer->GetCharData(theChar)->mWidth * aPointSize / aLayerPointSize);
+
+			if (thePrevChar != 0)
+			{
+				CharData* aPrevCharData = anActiveFontLayer->mBaseFontLayer->GetCharData(thePrevChar);
+				aSpacing = (anActiveFontLayer->mBaseFontLayer->mSpacing +
+					(theChar < 0x100 ? aPrevCharData->mKerningOffsets[(uchar)theChar] : 0)) * aPointSize / aLayerPointSize;
+			}
+			else
+				aSpacing = 0;
 		}
 
 		aLayerXPos += aCharWidth + aSpacing;
@@ -1638,9 +1647,13 @@ void ImageFont::DrawStringEx(Graphics* g, int theX, int theY, const SexyString& 
 	anImageY = theY - (anActiveFontLayer->mBaseFontLayer->mAscent - anActiveFontLayer->mBaseFontLayer->mOffset.mY - aCharData->mOffset.mY);
 	aCharWidth = aCharData->mWidth;				
 	
-	aSpacing = anActiveFontLayer->mBaseFontLayer->mSpacing;
-	if (aNextChar != 0 && aNextChar <= 0xFF)
-		aSpacing += aCharData->mKerningOffsets[(uchar) aNextChar];
+	if (aNextChar != 0)
+	{
+		aSpacing = anActiveFontLayer->mBaseFontLayer->mSpacing +
+			(aNextChar < 0x100 ? anActiveFontLayer->mBaseFontLayer->GetCharData(aChar)->mKerningOffsets[(uchar)aNextChar] : 0);
+	}
+	else
+		aSpacing = 0;
 }
 else
 {
@@ -1648,10 +1661,13 @@ else
 	anImageY = theY - (int) ((anActiveFontLayer->mBaseFontLayer->mAscent - anActiveFontLayer->mBaseFontLayer->mOffset.mY - aCharData->mOffset.mY) * aScale);
 	aCharWidth = (int)(aCharData->mWidth * aScale);
 	
-	aSpacing = anActiveFontLayer->mBaseFontLayer->mSpacing;
-	if (aNextChar != 0 && aNextChar <= 0xFF)
-		aSpacing += aCharData->mKerningOffsets[(uchar) aNextChar];
-	aSpacing = (int)(aSpacing * aScale);
+	if (aNextChar != 0)
+	{
+		aSpacing = (int)((anActiveFontLayer->mBaseFontLayer->mSpacing +
+			(aNextChar < 0x100 ? anActiveFontLayer->mBaseFontLayer->GetCharData(aChar)->mKerningOffsets[(uchar)aNextChar] : 0)) * aScale);
+	}
+	else
+		aSpacing = 0;
 }						
 			
 			Color aColor;

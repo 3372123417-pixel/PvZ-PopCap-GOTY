@@ -224,6 +224,7 @@ public:
 	AlmanacDialog*					DoAlmanacDialog(SeedType theSeedType = SeedType::SEED_NONE, ZombieType theZombieType = ZombieType::ZOMBIE_INVALID);
 	bool							KillAlmanacDialog();
 	int								GetSeedsAvailable();
+	SeedType						GetRandomAvailableSeed();
 	Reanimation*					AddReanimation(float theX, float theY, int theRenderOrder, ReanimationType theReanimationType);
 	TodParticleSystem*				AddTodParticle(float theX, float theY, int theRenderOrder, ParticleEffect theEffect);
 	/*inline*/ ParticleSystemID		ParticleGetID(TodParticleSystem* theParticle);
