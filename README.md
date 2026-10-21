@@ -1,5 +1,5 @@
 # Plants vs. Zombies Decompilation
-The original version of the decompilation for Plants vs. Zombies v0.9.9.1029.
+The original version of the decompilation for Plants vs. Zombies v1.0.1073.
 
 # Building
 **IMPORTANT:** Make sure to use the Debug folder along with the executables, as these binaries won't work with the original game assets.
