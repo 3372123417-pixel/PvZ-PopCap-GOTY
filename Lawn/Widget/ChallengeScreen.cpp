@@ -83,8 +83,8 @@ ChallengeDefinition gChallengeDefs[NUM_CHALLENGE_MODES] = {
 	{ GameMode::GAMEMODE_PUZZLE_I_ZOMBIE_8,                    11,  ChallengePage::CHALLENGE_PAGE_PUZZLE,      3,  2,  _S("[I_ZOMBIE_8]") },
 	{ GameMode::GAMEMODE_PUZZLE_I_ZOMBIE_9,                    11,  ChallengePage::CHALLENGE_PAGE_PUZZLE,      3,  3,  _S("[I_ZOMBIE_9]") },
 	{ GameMode::GAMEMODE_PUZZLE_I_ZOMBIE_ENDLESS,              11,  ChallengePage::CHALLENGE_PAGE_PUZZLE,      3,  4,  _S("[I_ZOMBIE_ENDLESS]") },
-	{ GameMode::GAMEMODE_UPSELL,                               10,  ChallengePage::CHALLENGE_PAGE_LIMBO,       3,  4,  _S("[UPSELL]") },
-	{ GameMode::GAMEMODE_INTRO,                                10,  ChallengePage::CHALLENGE_PAGE_LIMBO,       2,  3,  _S("[INTRO]") }
+	{ GameMode::GAMEMODE_UPSELL,                               10,  ChallengePage::CHALLENGE_PAGE_LIMBO,       3,  4,  _S("Upsell") },
+	{ GameMode::GAMEMODE_INTRO,                                10,  ChallengePage::CHALLENGE_PAGE_LIMBO,       2,  3,  _S("Intro") }
 };
 
 //0x42DAE0
@@ -95,7 +95,11 @@ ChallengeScreen::ChallengeScreen(LawnApp* theApp, ChallengePage thePage)
 	mPageIndex = thePage;
 	mApp = theApp;
 	mClip = false;
+	#ifdef _DEBUG
+	mCheatEnableChallenges = IsDebuggerPresent();
+#else
 	mCheatEnableChallenges = false;
+#endif
 	mUnlockState = UNLOCK_OFF;
 	mUnlockChallengeIndex = -1;
 	mUnlockStateCounter = 0;
@@ -115,7 +119,7 @@ ChallengeScreen::ChallengeScreen(LawnApp* theApp, ChallengePage thePage)
 		aPageButton->mDoFinger = true;
 		mPageButton[aPageIdx] = aPageButton;
 		if (aPageIdx == CHALLENGE_PAGE_LIMBO)
-			aPageButton->mLabel = mApp->GetString("LIMBO_PAGE_BUTTON", TodStringTranslate(_S("[LIMBO_PAGE_BUTTON]")));
+			aPageButton->mLabel = TodStringTranslate(_S("Limbo Page"));
 		else
 			aPageButton->mLabel = TodReplaceNumberString(_S("[PAGE_X]"), _S("{PAGE}"), aPageIdx);
 		aPageButton->mButtonImage = Sexy::IMAGE_BLANK;
@@ -125,7 +129,7 @@ ChallengeScreen::ChallengeScreen(LawnApp* theApp, ChallengePage thePage)
 		aPageButton->mColors[ButtonWidget::COLOR_LABEL] = Color(255, 240, 0);
 		aPageButton->mColors[ButtonWidget::COLOR_LABEL_HILITE] = Color(220, 220, 0);
 		aPageButton->Resize(200 + 100 * aPageIdx, 540, 100, 75);
-		if (!ShowPageButtons())
+		if (!mCheatEnableChallenges || !ShowPageButtons())
 			aPageButton->mVisible = false;
 	}
 	
@@ -335,7 +339,7 @@ int ChallengeScreen::MoreTrophiesNeeded(int theChallengeIndex)
 //0x42E6E0
 bool ChallengeScreen::ShowPageButtons()
 {
-	return mApp->mTodCheatKeys;
+	return mCheatEnableChallenges || (mPageIndex != CHALLENGE_PAGE_SURVIVAL && mPageIndex != CHALLENGE_PAGE_PUZZLE);
 }
 
 //0x42E710

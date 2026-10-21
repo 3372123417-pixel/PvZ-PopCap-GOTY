@@ -148,7 +148,7 @@ std::string Sexy::StringToUpper(const std::string& theString)
 	std::string aString;
 
 	for (unsigned i = 0; i < theString.length(); i++)
-		aString += toupper(theString[i]);
+		aString += toupper((unsigned char)theString[i]);
 
 	return aString;
 }
@@ -168,7 +168,7 @@ std::string Sexy::StringToLower(const std::string& theString)
 	std::string aString;
 
 	for (unsigned i = 0; i < theString.length(); i++)
-		aString += tolower(theString[i]);
+		aString += tolower((unsigned char)theString[i]);
 
 	return aString;
 }
@@ -329,11 +329,11 @@ std::wstring Sexy::SexyStringToWString(const SexyString& theString)
 std::string Sexy::Trim(const std::string& theString)
 {
 	int aStartPos = 0;
-	while ( aStartPos < (int) theString.length() && isspace(theString[aStartPos]) )
+	while ( aStartPos < (int) theString.length() && isspace((unsigned char)theString[aStartPos]) )
 		aStartPos++;
 
 	int anEndPos = theString.length() - 1;
-	while ( anEndPos >= 0 && isspace(theString[anEndPos]) )
+	while ( anEndPos >= 0 && isspace((unsigned char)theString[anEndPos]) )
 		anEndPos--;
 
 	return theString.substr(aStartPos, anEndPos - aStartPos + 1);
@@ -1497,7 +1497,7 @@ int Sexy::StrFindNoCase(const char *theStr, const char *theFind)
 		p2 = 0;
 		while(p1<len1 && p2<len2)
 		{
-			if(tolower(theStr[p1])!=tolower(theFind[p2]))
+			if(tolower((unsigned char)theStr[p1])!=tolower((unsigned char)theFind[p2]))
 				break;
 
 			p1++; p2++;
@@ -1519,8 +1519,8 @@ bool Sexy::StrPrefixNoCase(const char *theStr, const char *thePrefix, int maxLen
 	char c1 = 0, c2 = 0;
 	for (i=0; i<maxLength; i++)
 	{
-		c1 = tolower(*theStr++);
-		c2 = tolower(*thePrefix++);
+		c1 = tolower((unsigned char)*theStr++);
+		c2 = tolower((unsigned char)*thePrefix++);
 
 		if (c1==0 || c2==0)
 			break;

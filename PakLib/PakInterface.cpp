@@ -18,7 +18,7 @@ static std::string StringToUpper(const std::string& theString)
 	std::string aString;
 
 	for (unsigned i = 0; i < theString.length(); i++)
-		aString += toupper(theString[i]);
+		aString += toupper((unsigned char)theString[i]);
 
 	return aString;
 }
@@ -444,4 +444,3 @@ BOOL PakInterface::FindClose(HANDLE hFindFile)
 	delete aFindData;
 	return TRUE;
 }
-

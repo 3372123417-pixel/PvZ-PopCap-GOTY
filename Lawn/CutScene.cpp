@@ -1698,19 +1698,12 @@ void CutScene::AdvanceCrazyDaveDialog(bool theJustSkipping)
 //0x43CE00
 void CutScene::MouseDown(int theX, int theY)
 {
-	if (mApp->mTodCheatKeys && mApp->mGameMode == GameMode::GAMEMODE_UPSELL)
+	if (mApp->mGameMode == GameMode::GAMEMODE_UPSELL)
+		return;
+
+	if (IsShowingCrazyDave())
 	{
-		if (mCrazyDaveCountDown > 1)
-		{
-			mCrazyDaveCountDown = 1;
-		}
-	}
-	else
-	{
-		if (IsShowingCrazyDave())
-		{
-			AdvanceCrazyDaveDialog(false);
-		}
+		AdvanceCrazyDaveDialog(false);
 	}
 }
 
@@ -1719,12 +1712,7 @@ void CutScene::KeyDown(KeyCode theKey)
 {
 	if (mApp->mGameMode == GameMode::GAMEMODE_UPSELL)
 	{
-		if (mApp->mTodCheatKeys && (theKey == KeyCode::KEYCODE_SPACE || theKey == KeyCode::KEYCODE_RETURN))
-		{
-			mCrazyDaveLastTalkIndex = 3316; // “这足够把你的脑子吹到火星，再吹回来！”
-			mCrazyDaveCountDown = 1;
-		}
-		else if (theKey == KeyCode::KEYCODE_SPACE || theKey == KeyCode::KEYCODE_RETURN || theKey == KeyCode::KEYCODE_ESCAPE)
+		if (theKey == KeyCode::KEYCODE_SPACE || theKey == KeyCode::KEYCODE_RETURN || theKey == KeyCode::KEYCODE_ESCAPE)
 		{
 			mApp->CrazyDaveStopSound();
 			mApp->PlaySample(SOUND_PAUSE);

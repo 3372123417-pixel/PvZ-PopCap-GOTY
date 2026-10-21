@@ -181,7 +181,7 @@ inline void			inlineUpper(std::string &theData)
 	int aStrLen = (int) theData.length();
 	for (int i = 0; i < aStrLen; i++)
 	{
-		theData[i] = toupper(theData[i]);
+		theData[i] = toupper((unsigned char)theData[i]);
 	}
 }
 
@@ -198,7 +198,11 @@ inline void			inlineUpper(std::wstring &theData)
 
 inline void			inlineLower(std::string &theData)
 {
-    std::transform(theData.begin(), theData.end(), theData.begin(), tolower);
+	int aStrLen = (int) theData.length();
+	for (int i = 0; i < aStrLen; i++)
+	{
+		theData[i] = tolower((unsigned char)theData[i]);
+	}
 }
 
 inline void			inlineLower(std::wstring &theData)
